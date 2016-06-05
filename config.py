@@ -1,0 +1,2 @@
+SQLALCHEMY_DATABASE_URI = "sqlite:///:memory:"
+POSTS_GET_LIMIT_MAX = 10

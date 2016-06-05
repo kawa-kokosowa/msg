@@ -1,2 +1,3 @@
 # msgboard
-Modern imageboard.
+
+A simple restful text message board.
