@@ -1,2 +1,3 @@
 SQLALCHEMY_DATABASE_URI = "sqlite:///:memory:"
 POSTS_GET_LIMIT_MAX = 10
+SLEEP_RATE = 0.2

@@ -14,20 +14,25 @@ Options:
 import json
 import docopt
 import models
+import gevent
 import flask_restful
 import flask
 import config
 import requests
+import flask_sqlalchemy
 
+from gevent.pywsgi import WSGIServer
+from gevent import monkey
 from flask_limiter import Limiter
-from flask_sqlalchemy import SQLAlchemy
 
+
+monkey.patch_all()  # NOTE: totally cargo culting this one
 
 app = flask.Flask(__name__)
 app.config.from_object("config")
 api = flask_restful.Api(app)
 limiter = Limiter(app)
-db = SQLAlchemy(app)
+db = flask_sqlalchemy.SQLAlchemy(app)
 
 
 class Posts(flask_restful.Resource):
@@ -79,6 +84,40 @@ class Post(flask_restful.Resource):
             return result.to_dict()
 
 
+class Stream(flask_restful.Resource):
+
+    def get(self):
+        return flask.Response(self.event(), mimetype="text/event-stream")
+
+    def event(self):
+
+        with app.app_context():
+
+            try:
+                result = (db.session.query(models.Post).limit(1)
+                          .order_by(flask_sqlalchemy.desc(Post.created)))
+                latest_post_id = result.id
+            except AttributeError:
+                # .id will raise AttributeError if the query doesn't match anything
+                latest_post_id = 0
+
+        while True:
+
+            with app.app_context():
+                posts = (db.session.query(models.Post)
+                         .filter(models.Post.id > latest_post_id)
+                         .order_by(models.Post.id.asc()).all())
+
+            if posts:
+                latest_post_id = posts[-1].id
+                newer_posts = [post.to_dict() for post in posts]
+
+                yield "data: " + json.dumps(newer_posts) + "\n\n"
+
+            with app.app_context():
+                gevent.sleep(app.config['SLEEP_RATE'])
+
+
 def init_db():
     """For use on command line for setting up
     the database.
@@ -91,6 +130,7 @@ def init_db():
 
 api.add_resource(Post, '/post', '/post/<int:post_id>')
 api.add_resource(Posts, '/posts', '/posts/<int:page>')
+api.add_resource(Stream, '/stream')
 
 
 if __name__ == '__main__':
@@ -98,5 +138,7 @@ if __name__ == '__main__':
 
     if arguments['init_db']:
         init_db()
+
+    WSGIServer(('', 5000), app).serve_forever()
 
     app.run(debug=True, threaded=True)

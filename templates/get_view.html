@@ -1,14 +1,62 @@
 <html>
 <head>
   <title>View Posts</title>
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.2.0/jquery.min.js"></script>
 </head>
 <body>
 {% if posts %}
-  <ul>
+  <h1>View Posts</h1>
+  <ul id="posts">
   {% for post in posts %}
-    <li>{{ post["text"] }}</li>
+    <li class="post"><blockquote>{{ post["text"] }}</blockquote></li>
   {% endfor %}
   </ul>
 {% endif %}
+<script>
+  /* Listen on event source. */
+  function listen() {
+      var source = new EventSource("http://localhost:5000/stream");
+      source.onerror = function(eventdata) {
+          // i feel like this should do something major...
+          this.close();
+          listen();
+      }
+      source.onmessage = function(eventdata) {
+          console.log(eventdata);
+          var posts = JSON.parse(eventdata["data"]);
+          $.each(posts, function(index, post) {
+              // If there are already ten memories in the HTML,
+              // remove the first <li> before we add another!
+              if ($("#posts").children().length > 10) {
+                  $("#posts li:first-child").remove();
+              }
+              var new_li = jQuery('<li>');
+              new_li.attr('id', post.id);
+              var article = jQuery('<article>');
+              article.attr('class', 'post');
+
+              var blockquote = jQuery('<blockquote>');
+              blockquote.text(post.text);
+              article.append(blockquote);
+              var filtered = article.html().replace(/#\d+(?!([&]))/g, n => `<a href="${n}">${n}</a>`);
+              article.html(filtered);
+
+              var header = jQuery('<header>');
+              var post_id = jQuery('<h2>');
+              post_id.text("#" + post.id);
+              header.append(post_id);
+              var timestamp = jQuery('<time>');
+              timestamp.attr('class', 'created');
+              timestamp.text(post.created);
+              header.append(timestamp);
+              article.prepend(header);
+              
+              new_li.append(article);
+              $('#posts').append(new_li);
+          });
+      }
+  }
+  listen();
+</script>
 </body>
 </html>
