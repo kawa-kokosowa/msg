@@ -1,3 +1,4 @@
+# TODO: use session connectio npooling for requests
 """msgboard: simple restful text message board.
 
 Usage:
@@ -10,11 +11,13 @@ Options:
 
 """
 
+import json
 import docopt
 import models
 import flask_restful
 import flask
 import config
+import requests
 
 from flask_limiter import Limiter
 from flask_sqlalchemy import SQLAlchemy
@@ -23,6 +26,7 @@ from flask_sqlalchemy import SQLAlchemy
 app = flask.Flask(__name__)
 app.config.from_object("config")
 api = flask_restful.Api(app)
+limiter = Limiter(app)
 db = SQLAlchemy(app)
 
 
@@ -95,4 +99,4 @@ if __name__ == '__main__':
     if arguments['init_db']:
         init_db()
 
-    app.run(debug=True)
+    app.run(debug=True, threaded=True)
