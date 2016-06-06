@@ -41,6 +41,7 @@ class User(Base):
                 'id': self.id,
                 'created': self.created.isoformat("T") + 'Z'}
 
+
 class Post(Base):
     """A submission to the site, just some text,
     a timestamp, an associated user, and an ID.
@@ -49,11 +50,16 @@ class Post(Base):
 
     __tablename__ = 'posts'
     id = sqlalchemy.Column(sqlalchemy.Integer, primary_key=True)
+    user_id = sqlalchemy.Column(sqlalchemy.Integer,
+                                sqlalchemy.ForeignKey(User.id))
     created = sqlalchemy.Column(sqlalchemy.DateTime,
                                 default=datetime.datetime.utcnow)
     text = sqlalchemy.Column(sqlalchemy.String())
 
-    def __init__(self, text):
+    user = sqlalchemy.orm.relationship('User', foreign_keys='Post.user_id')
+
+    def __init__(self, user_id, text):
+        self.user_id = user_id
         self.text = text
 
     def __repr__(self):
@@ -67,4 +73,5 @@ class Post(Base):
 
         return {'id': self.id,
                 'text': self.text,
+                'user': self.user.to_dict(),
                 'created': self.created.isoformat("T") + 'Z'}

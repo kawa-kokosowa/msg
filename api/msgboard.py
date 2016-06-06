@@ -43,13 +43,21 @@ class User(flask_restful.Resource):
 
     """
 
-    def get(self, user_id):
+    def get(self, user_id=None, username=None):
         """Get a specific user's info.
+
+        Should elaborate. Be able to specify username
+        or by user_id.
 
         """
 
-        result = db.session.query(models.User).get(user_id)
-        return result.to_dict()
+        if user_id:
+            user = db.session.query(models.User).get(user_id)
+        else:
+            user = (db.session.query(models.User)
+                    .filter(models.User.username == username).first())
+
+        return user.to_dict()
 
     def post(self):
         """Create a new user.
@@ -87,6 +95,8 @@ class Posts(flask_restful.Resource):
 
 class Post(flask_restful.Resource):
 
+    # FIXME: require that post user is equal to
+    # auth user
     @auth.login_required
     def put(self, post_id):
         """Edit an existing post.
@@ -108,11 +118,13 @@ class Post(flask_restful.Resource):
 
         json_data = flask.request.get_json(force=True)
         text = json_data['text']
-        new_post = models.Post(text)
+        user_id = User().get(username=auth.username())['id']
+        new_post = models.Post(user_id, text)
         db.session.add(new_post)
         db.session.commit()
         return self.get(new_post.id)
 
+    # FIXME: require that post user equals auth user
     @auth.login_required
     def delete(self, post_id):
         """Delete a specific post.
@@ -172,7 +184,6 @@ class Stream(flask_restful.Resource):
             if posts:
                 latest_post_id = posts[-1].id
                 newer_posts = [post.to_dict() for post in posts]
-
                 yield "data: " + json.dumps(newer_posts) + "\n\n"
 
             with app.app_context():
@@ -181,7 +192,8 @@ class Stream(flask_restful.Resource):
 
 @auth.verify_password
 def get_password(username, password):
-    result = db.session.query(models.User).filter(models.User.username==username).first()
+    result = (db.session.query(models.User)
+              .filter(models.User.username==username).first())
     return result.check_password(password)
 
 
@@ -198,7 +210,7 @@ def init_db():
 api.add_resource(Post, '/post', '/post/<int:post_id>')
 api.add_resource(Posts, '/posts', '/posts/<int:page>')
 api.add_resource(Stream, '/stream')
-api.add_resource(User, '/user', '/user/<int:user_id>')
+api.add_resource(User, '/user', '/user/<int:user_id>', '/user/<username>')
 
 
 if __name__ == '__main__':
