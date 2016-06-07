@@ -209,7 +209,7 @@ class Stream(flask_restful.Resource):
 
             try:
                 result = (db.session.query(models.Post).limit(1)
-                          .order_by(flask_sqlalchemy.desc(Post.created)))
+                          .order_by(flask_sqlalchemy.desc(models.Post.created)))
                 latest_post_id = result.id
             except AttributeError:
                 # .id will raise AttributeError if the query doesn't match anything

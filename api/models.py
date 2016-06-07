@@ -56,7 +56,8 @@ class Post(Base):
                                 default=datetime.datetime.utcnow)
     text = sqlalchemy.Column(sqlalchemy.String())
 
-    user = sqlalchemy.orm.relationship('User', foreign_keys='Post.user_id')
+    user = sqlalchemy.orm.relationship('User', foreign_keys='Post.user_id',
+                                       lazy='subquery')
 
     def __init__(self, user_id, text):
         self.user_id = user_id
