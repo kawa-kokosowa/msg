@@ -19,6 +19,6 @@ The actual magic is done through the api server, called `api/msgboard.py`.
 
 Here are the features I'm hoping to implement:
 
-  * Nice jinja views for restful calls
+  * Nice jinja functionality for `msgviewer.py`
   * Support for checking links, replacing/adding
     embed for music, video, or picture (javascript)
