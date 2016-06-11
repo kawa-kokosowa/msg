@@ -6,3 +6,4 @@ flask_sqlalchemy
 flask_limiter
 requests
 gevent
+pytest
