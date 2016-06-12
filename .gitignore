@@ -5,6 +5,7 @@ __pycache__/
 
 # VIM!!!
 *.swp
+.*.sw*
 
 # C extensions
 *.so
