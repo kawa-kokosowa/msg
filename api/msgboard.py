@@ -11,6 +11,7 @@ Options:
 
 """
 
+import os
 import json
 import docopt
 import models
@@ -31,7 +32,9 @@ from flask_httpauth import HTTPBasicAuth
 monkey.patch_all()  # NOTE: totally cargo culting this one
 
 app = flask.Flask(__name__)
-app.config.from_object("config")
+
+config_path = os.path.dirname(os.path.abspath(__file__))
+app.config.from_pyfile(os.path.join(config_path, "config.py"))
 api = flask_restful.Api(app)
 limiter = Limiter(app)
 db = flask_sqlalchemy.SQLAlchemy(app)
