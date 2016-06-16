@@ -47,7 +47,7 @@ class User(flask_restful.Resource):
 
     """
 
-    def get(self):
+    def get(self, user_id=None, username=None):
         """Get a specific user's info.
 
         Should elaborate. Be able to specify username
@@ -55,17 +55,13 @@ class User(flask_restful.Resource):
 
         """
 
-        json_data = flask.request.get_json(force=True)
-
-        if 'user_id' in json_data:
-            user_id = json_data['user_id']
+        if user_id:
             user = db.session.query(models.User).get(user_id)
 
             if user is None:
                 flask_restful.abort(404, message="No user matching ID: %s" % user_id)
 
-        elif 'username' in json_data:
-            username = json_data['username']
+        elif username:
             user = (db.session.query(models.User)
                     .filter(models.User.username == username).first())
 
@@ -258,7 +254,7 @@ def init_db():
 api.add_resource(Post, '/post', '/post/<int:post_id>')
 api.add_resource(Posts, '/posts', '/posts/<int:page>')
 api.add_resource(Stream, '/stream')
-api.add_resource(User, '/user')
+api.add_resource(User, '/user', '/user/<int:user_id>', '/user/<username>')
 
 
 if __name__ == '__main__':
