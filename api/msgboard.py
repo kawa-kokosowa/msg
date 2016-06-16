@@ -11,6 +11,7 @@ Options:
 
 """
 
+import os
 import json
 import docopt
 import models
@@ -19,6 +20,7 @@ import flask_restful
 import flask
 import config
 import requests
+import sqlalchemy
 import flask_sqlalchemy
 
 from gevent import monkey
@@ -30,7 +32,9 @@ from flask_httpauth import HTTPBasicAuth
 monkey.patch_all()  # NOTE: totally cargo culting this one
 
 app = flask.Flask(__name__)
-app.config.from_object("config")
+
+config_path = os.path.dirname(os.path.abspath(__file__))
+app.config.from_pyfile(os.path.join(config_path, "config.py"))
 api = flask_restful.Api(app)
 limiter = Limiter(app)
 db = flask_sqlalchemy.SQLAlchemy(app)
@@ -43,7 +47,7 @@ class User(flask_restful.Resource):
 
     """
 
-    def get(self, user_id=None, username=None):
+    def get(self):
         """Get a specific user's info.
 
         Should elaborate. Be able to specify username
@@ -51,11 +55,27 @@ class User(flask_restful.Resource):
 
         """
 
-        if user_id:
+        json_data = flask.request.get_json(force=True)
+
+        if 'user_id' in json_data:
+            user_id = json_data['user_id']
             user = db.session.query(models.User).get(user_id)
-        else:
+
+            if user is None:
+                flask_restful.abort(404, message="No user matching ID: %s" % user_id)
+
+        elif 'username' in json_data:
+            username = json_data['username']
             user = (db.session.query(models.User)
                     .filter(models.User.username == username).first())
+
+            if user is None:
+                message = "No user matching username: %s" % username
+                flask_restful.abort(404, message=message)
+
+        else:
+            message = "Must specify user_id or username."
+            flask_restful.abort(400, message=message)
 
         return user.to_dict()
 
@@ -70,8 +90,14 @@ class User(flask_restful.Resource):
         bio = json_data.get('bio')
         new_user = models.User(username, password, bio=bio)
         db.session.add(new_user)
-        db.session.commit()
-        return self.get(new_user.id)
+
+        try:
+            db.session.commit()
+        except sqlalchemy.exc.IntegrityError:
+            message = "A user already exists with username: %s" % username
+            flask_restful.abort(400, message=message)
+        else:
+            return new_user.to_dict()
 
 
 class Posts(flask_restful.Resource):
@@ -90,13 +116,16 @@ class Posts(flask_restful.Resource):
             query = query.offset(offset)
 
         results = query.all()
-        return [r.to_dict() for r in results]
+
+        if results is None:
+            message = "No posts found at offset %s limit %s"
+            flask_restful.abort(404, message=message)
+        else:
+            return [r.to_dict() for r in results]
 
 
 class Post(flask_restful.Resource):
 
-    # FIXME: require that post user is equal to
-    # auth user
     @auth.login_required
     def put(self, post_id):
         """Edit an existing post.
@@ -106,9 +135,14 @@ class Post(flask_restful.Resource):
         json_data = flask.request.get_json(force=True)
         text = json_data['text']
         result = db.session.query(models.Post).get(post_id)
-        result.text = text
-        db.session.commit()
-        return self.get(post_id)
+
+        if result.user.username == auth.username():
+            result.text = text
+            db.session.commit()
+            return self.get(post_id)
+
+        else:
+            flask_restful.abort(400, message="You are not this post's author.")
 
     @auth.login_required
     def post(self):
@@ -118,13 +152,14 @@ class Post(flask_restful.Resource):
 
         json_data = flask.request.get_json(force=True)
         text = json_data['text']
-        user_id = User().get(username=auth.username())['id']
+        user_id = (db.session.query(models.User)
+                   .filter(models.User.username == auth.username())
+                   .first().id)
         new_post = models.Post(user_id, text)
         db.session.add(new_post)
         db.session.commit()
         return self.get(new_post.id)
 
-    # FIXME: require that post user equals auth user
     @auth.login_required
     def delete(self, post_id):
         """Delete a specific post.
@@ -132,8 +167,14 @@ class Post(flask_restful.Resource):
         """
 
         result = db.session.query(models.Post).get(post_id)
-        db.session.delete(result)
-        db.session.commit()
+
+        if result.user.username == auth.username():
+            db.session.delete(result)
+            db.session.commit()
+            # TODO: return SOMETHING!
+        else:
+            message = "You're not the author of post %s" % post_id
+            flask_restful.abort(400, message=message)
 
     def get(self, post_id):
         """Get a specific post.
@@ -144,6 +185,9 @@ class Post(flask_restful.Resource):
 
         if result:
             return result.to_dict()
+        else:
+            message = "Cannot find post by id: %s" % post_id
+            flask_restful.abort(404, message=message)
 
 
 class Stream(flask_restful.Resource):
@@ -168,7 +212,7 @@ class Stream(flask_restful.Resource):
 
             try:
                 result = (db.session.query(models.Post).limit(1)
-                          .order_by(flask_sqlalchemy.desc(Post.created)))
+                          .order_by(flask_sqlalchemy.desc(models.Post.created)))
                 latest_post_id = result.id
             except AttributeError:
                 # .id will raise AttributeError if the query doesn't match anything
@@ -193,8 +237,12 @@ class Stream(flask_restful.Resource):
 @auth.verify_password
 def get_password(username, password):
     result = (db.session.query(models.User)
-              .filter(models.User.username==username).first())
-    return result.check_password(password)
+              .filter(models.User.username == username).first())
+
+    if result is None:
+        return False
+    else:
+        return result.check_password(password)
 
 
 def init_db():
@@ -210,7 +258,7 @@ def init_db():
 api.add_resource(Post, '/post', '/post/<int:post_id>')
 api.add_resource(Posts, '/posts', '/posts/<int:page>')
 api.add_resource(Stream, '/stream')
-api.add_resource(User, '/user', '/user/<int:user_id>', '/user/<username>')
+api.add_resource(User, '/user')
 
 
 if __name__ == '__main__':
