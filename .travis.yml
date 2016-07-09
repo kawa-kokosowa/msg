@@ -1,0 +1,16 @@
+language: python
+    python:
+        - "2.7"
+        - "3.4"
+    before_install:
+        - "pip install -U pip"
+        - "sudo apt-get update -qq"
+        - "pip install -r api/requirements/travis.txt"
+    
+install:
+        - "pip install ."
+    script:
+        - cd api
+        - py.test tests --doctest-modules --pep8 msgboard -v --cov-report term-missing --cov=msgboard
+    after_success:
+        - coveralls

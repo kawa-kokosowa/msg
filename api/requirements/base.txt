@@ -2,12 +2,7 @@ docopt
 flask
 flask-restful
 flask-httpauth
-<<<<<<< HEAD:requirements.txt
 flask_sqlalchemy  # I believe this installs sqlalchemy too
-=======
-flask_sqlalchemy
-sqlalchemy
->>>>>>> tests:api/requirements.txt
 flask_limiter
 requests
 gevent
