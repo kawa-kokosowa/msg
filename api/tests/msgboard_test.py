@@ -148,6 +148,10 @@ class MsgboardTestCase(unittest.TestCase):
 
     def test_edit_post(self):
 
+        """Test that a user can edit their own post
+
+        """
+        
         self.test_get_post()
 
         edited_post_fixture = {
@@ -178,6 +182,51 @@ class MsgboardTestCase(unittest.TestCase):
         del response["user"]["created"]
 
         assert edited_post_fixture == response
+
+    def test_edit_post_bad_auth(self):
+
+        """Test that unauthorized users cannot edit
+        posts.
+
+        """
+
+        # Create fixtures
+        wrong_user_fixture = {
+                "message": "You are not this post's author."
+                }
+
+        no_login_fixture = None
+
+        nonexistent_user_fixture = None
+
+        edit_content = {
+                "text": "Can't edit these nuts."
+                }
+
+        data = json.dumps(edit_content)
+        
+        # Create user and post
+        self.test_get_post()
+
+        # Create a second user
+        second_user = {
+                "username": 'testuser2',
+                "password": 'testpass'
+                }
+
+        self.app.post('/user', data=json.dumps(second_user),
+                      content_type='application/json')
+
+        #Try to edit first user's post
+        b64creds = base64.b64encode("%s:%s" % ("testuser2", "testpass"))
+        headers = {"Authorization": "Basic " + b64creds}
+
+        response = self.app.put('/post/1', headers=headers, data=data,
+                                content_type='application/json')
+
+        response = json.loads(response.data)
+
+        assert wrong_user_fixture == response
 
 
 if __name__ == '__main__':
