@@ -72,9 +72,9 @@ class MsgboardTestCase(unittest.TestCase):
 
         # Create and send the user data
         user_data = {
-                "username": 'testuser',
-                "password": 'testpass'
-                }
+                     "username": 'testuser',
+                     "password": 'testpass'
+                    }
         
         response = self.post('/user', data=user_data)
 
@@ -121,14 +121,14 @@ class MsgboardTestCase(unittest.TestCase):
         del response["user"]["created"]
 
         post_fixture = {
-                "id": 1,
-                "text": 'I am a post.',
-                "user": {
-                    "bio": None,
-                    "id": 1,
-                    "username": 'testuser'
-                    }
-                }
+                        "id": 1,
+                        "text": 'I am a post.',
+                        "user": {
+                                 "bio": None,
+                                 "id": 1,
+                                 "username": 'testuser'
+                                }
+                       }
 
         # you're getting NONE here because the user isn't created
         assert post_fixture == response
@@ -186,16 +186,16 @@ class MsgboardTestCase(unittest.TestCase):
 
         # Create fixtures
         wrong_user_fixture = {
-                "message": "You are not this post's author."
-                }
+                              "message": "You are not this post's author."
+                             }
 
         no_login_fixture = None
 
         nonexistent_user_fixture = None
 
         edit_content = {
-                "text": "Can't edit these nuts."
-                }
+                        "text": "Can't edit these nuts."
+                       }
 
         data = json.dumps(edit_content)
         
@@ -204,9 +204,9 @@ class MsgboardTestCase(unittest.TestCase):
 
         # Create a second user
         second_user = {
-                "username": 'testuser2',
-                "password": 'testpass'
-                }
+                       "username": 'testuser2',
+                       "password": 'testpass'
+                      }
 
         self.app.post('/user', data=json.dumps(second_user),
                       content_type='application/json')
