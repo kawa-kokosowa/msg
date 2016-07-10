@@ -6,8 +6,6 @@ before_install:
     - "pip install -U pip"
     - "sudo apt-get update -qq"
     - "pip install -r api/requirements/travis.txt"
-install:
-    - "pip install ."
 script:
     - cd api
     - py.test tests --doctest-modules --pep8 msgboard -v --cov-report term-missing --cov=msgboard
