@@ -59,7 +59,8 @@ class User(flask_restful.Resource):
             user = db.session.query(models.User).get(user_id)
 
             if user is None:
-                flask_restful.abort(404, message="No user matching ID: %s" % user_id)
+                message = "No user matching ID: %s" % user_id
+                flask_restful.abort(404, message=message)
 
         elif username:
             user = (db.session.query(models.User)
@@ -208,10 +209,12 @@ class Stream(flask_restful.Resource):
 
             try:
                 result = (db.session.query(models.Post).limit(1)
-                          .order_by(flask_sqlalchemy.desc(models.Post.created)))
+                          .order_by(flask_sqlalchemy
+                                    .desc(models.Post.created)))
                 latest_post_id = result.id
             except AttributeError:
-                # .id will raise AttributeError if the query doesn't match anything
+                # .id will raise AttributeError if
+                # the query doesn't match anything
                 latest_post_id = 0
 
         while True:

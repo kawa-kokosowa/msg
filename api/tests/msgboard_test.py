@@ -42,7 +42,8 @@ class MsgboardTestCase(unittest.TestCase):
         """
 
         if attribute_name.lower() in ('post', 'get', 'put', 'delete'):
-            specific_call_method = functools.partial(self.call, attribute_name.lower())
+            specific_call_method = functools.partial(self.call,
+                                                     attribute_name.lower())
             return specific_call_method
 
         raise AttributeError("%s is not valid method" % attribute_name)
@@ -75,7 +76,7 @@ class MsgboardTestCase(unittest.TestCase):
                      "username": 'testuser',
                      "password": 'testpass'
                     }
-        
+
         response = self.post('/user', data=user_data)
 
         # parse the JSON response and remove the created
@@ -108,13 +109,12 @@ class MsgboardTestCase(unittest.TestCase):
 
         assert user_fixture == name_response
 
-
     def test_post(self):
         self.test_create_user()
 
-        post_content = {"text": 'I am a post.',}
+        post_content = {"text": 'I am a post.'}
         base64_creds = base64.b64encode("%s:%s" % ("testuser", "testpass"))
-        headers = {'Authorization': 'Basic ' + base64_creds,}
+        headers = {'Authorization': 'Basic ' + base64_creds}
         response = self.post('/post', headers=headers, data=post_content)
 
         del response["created"]
@@ -154,7 +154,7 @@ class MsgboardTestCase(unittest.TestCase):
         """Test that a user can edit their own post
 
         """
-        
+
         self.test_get_post()
         edited_post_fixture = {
                                "id": 1,
@@ -198,7 +198,7 @@ class MsgboardTestCase(unittest.TestCase):
                        }
 
         data = json.dumps(edit_content)
-        
+
         # Create user and post
         self.test_get_post()
 
@@ -211,7 +211,7 @@ class MsgboardTestCase(unittest.TestCase):
         self.app.post('/user', data=json.dumps(second_user),
                       content_type='application/json')
 
-        #Try to edit first user's post
+        # Try to edit first user's post
         b64creds = base64.b64encode("%s:%s" % ("testuser2", "testpass"))
         headers = {"Authorization": "Basic " + b64creds}
 

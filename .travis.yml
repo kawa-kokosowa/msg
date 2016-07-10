@@ -8,6 +8,6 @@ before_install:
     - "pip install -r api/requirements/travis.txt"
 script:
     - cd api
-    - py.test tests --doctest-modules --pep8 msgboard -v --cov-report term-missing --cov=msgboard
+    - py.test tests --doctest-modules --pep8 msgboard.py -v --cov-report term-missing --cov=msgboard.py
 after_success:
     - coveralls
