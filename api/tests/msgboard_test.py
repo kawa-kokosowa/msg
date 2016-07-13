@@ -111,24 +111,24 @@ class MsgboardTestCase(unittest.TestCase):
 
     def test_get_wrong_user(self):
         self.test_create_user()
-        no_info_response_fixture = {
-                                    "message": "Must specify user_id or username."
-                                   }
-        id_response_fixture = {
-                               "message": "No user matching ID: 69"
-                              }
-        name_response_fixture = {
-                                 "message": "No user matching username: notauser"
-                                }
+        no_info_fixture = {
+                           "message": "Must specify user_id or username."
+                          }
+        no_id_fixture = {
+                         "message": "No user matching ID: 69"
+                        }
+        no_name_fixture = {
+                           "message": "No user matching username: notauser"
+                          }
 
         no_info_response = self.get('/user')
-        assert no_info_response == no_info_response_fixture
+        assert no_info_response == no_info_fixture
 
         id_response = self.get('/user/69')
-        assert id_response == id_response_fixture
+        assert id_response == no_id_fixture
 
         name_response = self.get('/user/notauser')
-        assert name_response == name_response_fixture
+        assert name_response == no_name_fixture
 
     def test_post(self):
         self.test_create_user()
