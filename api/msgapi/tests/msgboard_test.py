@@ -9,7 +9,7 @@ import unittest
 import tempfile
 import functools
 
-from .. import msgboard
+from msgapi import msgboard
 
 
 class MsgboardTestCase(unittest.TestCase):
@@ -48,6 +48,24 @@ class MsgboardTestCase(unittest.TestCase):
 
         raise AttributeError("%s is not valid method" % attribute_name)
 
+    @staticmethod
+    def make_base64_header(username, password):
+        """Create Authorization header dict, for HTTPBasicAuth.
+
+        Arguments:
+            username (str):
+            password (str):
+
+        Returns:
+            dict
+
+        """
+
+        cred_string = ("%s:%s" % (username, password)).encode('utf-8')
+        base64_creds = base64.b64encode(cred_string)
+        headers = {'Authorization': 'Basic '.encode('utf-8') + base64_creds}
+        return headers
+
     def call(self, method, *args, **kwargs):
         """Because we're tired of entering content_type and
         translating JSON constantly!
@@ -63,7 +81,7 @@ class MsgboardTestCase(unittest.TestCase):
             kwargs['data'] = json.dumps(kwargs['data'])
 
         response = getattr(self.app, method)(*args, **kwargs)
-        return json.loads(response.data)
+        return json.loads(response.get_data(as_text=True))
 
     def test_create_user(self):
         """Create a user by POST'ing the correct
@@ -113,8 +131,7 @@ class MsgboardTestCase(unittest.TestCase):
         self.test_create_user()
 
         post_content = {"text": 'I am a post.'}
-        base64_creds = base64.b64encode("%s:%s" % ("testuser", "testpass"))
-        headers = {'Authorization': 'Basic ' + base64_creds}
+        headers = self.make_base64_header("testuser", "testpass")
         response = self.post('/post', headers=headers, data=post_content)
 
         del response["created"]
@@ -166,10 +183,7 @@ class MsgboardTestCase(unittest.TestCase):
                                        }
                               }
         edit_content = {"text": 'I am an edited post.'}
-
-        b64creds = base64.b64encode("%s:%s" % ("testuser", "testpass"))
-        headers = {"Authorization": "Basic " + b64creds}
-
+        headers = self.make_base64_header("testuser", "testpass")
         response = self.put('/post/1', headers=headers, data=edit_content)
 
         del response["created"]
@@ -178,7 +192,6 @@ class MsgboardTestCase(unittest.TestCase):
         assert edited_post_fixture == response
 
     def test_edit_post_bad_auth(self):
-
         """Test that unauthorized users cannot edit
         posts.
 
@@ -188,15 +201,11 @@ class MsgboardTestCase(unittest.TestCase):
         wrong_user_fixture = {
                               "message": "You are not this post's author."
                              }
-
         no_login_fixture = None
-
         nonexistent_user_fixture = None
-
         edit_content = {
                         "text": "Can't edit these nuts."
                        }
-
         data = json.dumps(edit_content)
 
         # Create user and post
@@ -207,18 +216,13 @@ class MsgboardTestCase(unittest.TestCase):
                        "username": 'testuser2',
                        "password": 'testpass'
                       }
-
         self.app.post('/user', data=json.dumps(second_user),
                       content_type='application/json')
 
         # Try to edit first user's post
-        b64creds = base64.b64encode("%s:%s" % ("testuser2", "testpass"))
-        headers = {"Authorization": "Basic " + b64creds}
-
-        response = self.app.put('/post/1', headers=headers, data=data,
-                                content_type='application/json')
-
-        response = json.loads(response.data)
+        headers = self.make_base64_header("testuser2", "testpass")
+        response = self.put('/post/1', headers=headers, data=data,
+                            content_type='application/json')
 
         assert wrong_user_fixture == response
 

@@ -11,14 +11,15 @@ Options:
 
 """
 
+from msgapi import models
+from msgapi import config
+
 import os
 import json
 import docopt
-import models
 import gevent
 import flask_restful
 import flask
-import config
 import requests
 import sqlalchemy
 import flask_sqlalchemy
