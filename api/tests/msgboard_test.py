@@ -91,6 +91,29 @@ class MsgboardTestCase(unittest.TestCase):
         # test the expected response vs. actual
         assert user_fixture == response
 
+    def test_create_existing_user(self):
+        """Attempt to created a user that is already
+        in the database.
+
+        """
+
+        self.test_create_user()
+
+        user_data = {
+                     "username": 'testuser',
+                     "password": 'testpass'
+                    }
+
+        message = "A user already exists with username: testuser"
+
+        response_fixture = {
+                            "message": message
+                           }
+
+        response = self.post('/user', data=user_data)
+
+        assert response_fixture == response
+
     def test_get_user(self):
         self.test_create_user()
         user_fixture = {
