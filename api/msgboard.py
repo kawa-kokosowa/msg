@@ -35,7 +35,7 @@ app = flask.Flask(__name__)
 
 config_path = os.path.dirname(os.path.abspath(__file__))
 app.config.from_pyfile(os.path.join(config_path, "config.py"))
-api = flask_restful.Api(app)
+api = flask_restful.Api(app, catch_all_404s=True)
 limiter = Limiter(app)
 db = flask_sqlalchemy.SQLAlchemy(app)
 auth = HTTPBasicAuth()

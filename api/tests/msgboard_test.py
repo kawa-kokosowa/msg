@@ -91,6 +91,29 @@ class MsgboardTestCase(unittest.TestCase):
         # test the expected response vs. actual
         assert user_fixture == response
 
+    def test_create_existing_user(self):
+        """Attempt to created a user that is already
+        in the database.
+
+        """
+
+        self.test_create_user()
+
+        user_data = {
+                     "username": 'testuser',
+                     "password": 'testpass'
+                    }
+
+        message = "A user already exists with username: testuser"
+
+        response_fixture = {
+                            "message": message
+                           }
+
+        response = self.post('/user', data=user_data)
+
+        assert response_fixture == response
+
     def test_get_user(self):
         self.test_create_user()
         user_fixture = {
@@ -108,6 +131,27 @@ class MsgboardTestCase(unittest.TestCase):
         del name_response["created"]
 
         assert user_fixture == name_response
+
+    def test_get_wrong_user(self):
+        self.test_create_user()
+        no_info_fixture = {
+                           "message": "Must specify user_id or username."
+                          }
+        no_id_fixture = {
+                         "message": "No user matching ID: 69"
+                        }
+        no_name_fixture = {
+                           "message": "No user matching username: notauser"
+                          }
+
+        no_info_response = self.get('/user')
+        assert no_info_response == no_info_fixture
+
+        id_response = self.get('/user/69')
+        assert id_response == no_id_fixture
+
+        name_response = self.get('/user/notauser')
+        assert name_response == no_name_fixture
 
     def test_post(self):
         self.test_create_user()
