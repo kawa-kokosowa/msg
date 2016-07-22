@@ -11,6 +11,10 @@ Options:
 
 """
 
+from gevent.pywsgi import WSGIServer
+from flask_limiter import Limiter
+from flask_httpauth import HTTPBasicAuth
+
 from . import models
 from . import config
 
@@ -23,14 +27,6 @@ import flask
 import requests
 import sqlalchemy
 import flask_sqlalchemy
-
-from gevent import monkey
-from gevent.pywsgi import WSGIServer
-from flask_limiter import Limiter
-from flask_httpauth import HTTPBasicAuth
-
-
-monkey.patch_all()  # NOTE: totally cargo culting this one
 
 app = flask.Flask(__name__)
 
@@ -265,6 +261,7 @@ api.add_resource(User, '/user', '/user/<int:user_id>', '/user/<username>')
 
 
 if __name__ == '__main__':
+    raise Exception("oOOOOOoOoOOHHHSDOAHAOHA no")
     arguments = docopt.docopt(__doc__)
 
     if arguments['init_db']:
