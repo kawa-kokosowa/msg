@@ -1,16 +1,31 @@
 # msgboard
 
-A modern imageboard.
+[![Travis CI Status](https://travis-ci.org/lillian-gardenia-seabreeze/msgboard.svg)](https://travis-ci.org/lillian-gardenia-seabreeze/msgboard)
 
-The html/frontend stuff is ran on a server called `msgviewer.py`.
+msgboard is a RESTful messaging solution, implemented in Python,
+with user accounts; ability to edit, delete, and submit posts.
 
-The actual magic is done through the api server, called `api/msgboard.py`.
+msgboard is general purpose, it could be used for an instant
+message service, a forum, or really anything else that is
+message-based (e.g., Twitter!).
 
-## Test it out
+The point of this project is to create an elegant, efficient,
+and intuitive barebones, tiny-scoped message library for general
+use in web development.
 
-  - `python api/msgboard.py init_db`
-  - `python viewer/msgviewer.py`
-  - Open http://localhost:8080/ in web browser with
-    `Allow-Control-Origin: *`, which you need for
-    testing server sent events locally. There's a
-    [Chrome Plugin for `Allow-Control-Origin: *`](https://chrome.google.com/webstore/detail/allow-control-allow-origi/nlfbmbojpeacfghkpbjhddihlkkiljbi/related?hl=en)
+## Features
+
+  * RESTful
+  * Has functioning event stream, with documentation
+  * Works in both Python 2 and Python 3
+  * Use any database supported by SQLAlchemy
+  * Easy to configure
+  * Rate limiting
+  * Post/edit/delete messages
+  * Users
+  * Thoroughly tested, stable
+
+## Deploying
+
+I wrote [a blog post on setting up a gevent/Flask app on FreeBSD
+with `supervisord` and `nginx`](http://hypatiasoftware.org/2016/01/29/polling-is-a-hack-server-sent-events-eventsource-with-gevent-flask-nginx-and-freebsd/).

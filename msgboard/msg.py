@@ -11,25 +11,22 @@ Options:
 
 """
 
-import os
-import json
-import docopt
-import models
-import gevent
-import flask_restful
-import flask
-import config
-import requests
-import sqlalchemy
-import flask_sqlalchemy
-
-from gevent import monkey
 from gevent.pywsgi import WSGIServer
 from flask_limiter import Limiter
 from flask_httpauth import HTTPBasicAuth
 
+from . import models
+from . import config
 
-monkey.patch_all()  # NOTE: totally cargo culting this one
+import os
+import json
+import docopt
+import gevent
+import flask_restful
+import flask
+import requests
+import sqlalchemy
+import flask_sqlalchemy
 
 app = flask.Flask(__name__)
 
@@ -130,7 +127,10 @@ class Post(flask_restful.Resource):
         """
 
         json_data = flask.request.get_json(force=True)
-        text = json_data['text']
+        try:
+            text = json_data['text']
+        except:
+            raise Exception(json_data)
         result = db.session.query(models.Post).get(post_id)
 
         if result.user.username == auth.username():
@@ -261,6 +261,7 @@ api.add_resource(User, '/user', '/user/<int:user_id>', '/user/<username>')
 
 
 if __name__ == '__main__':
+    raise Exception("oOOOOOoOoOOHHHSDOAHAOHA no")
     arguments = docopt.docopt(__doc__)
 
     if arguments['init_db']:
