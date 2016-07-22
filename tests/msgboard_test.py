@@ -26,12 +26,12 @@ class MsgboardTestCase(unittest.TestCase):
 
     def test_empty_db(self):
         """If the database is empty, a GET request
-        to /posts endpoint should return a blank list.
+        to /message endpoint should return a blank list.
 
         """
 
-        post_range = {"offset": 0, "limit": 10}
-        response = self.get('/posts', data=post_range)
+        message_range = {"offset": 0, "limit": 10}
+        response = self.get('/messages', data=message_range)
         assert [] == response
 
     def __getattr__(self, attribute_name):
@@ -174,16 +174,16 @@ class MsgboardTestCase(unittest.TestCase):
     def test_post(self):
         self.test_create_user()
 
-        post_content = {"text": 'I am a post.'}
+        message_content = {"text": 'I am a message.'}
         headers = self.make_base64_header("testuser", "testpass")
-        response = self.post('/post', headers=headers, data=post_content)
+        response = self.post('/message', headers=headers, data=message_content)
 
         del response["created"]
         del response["user"]["created"]
 
         post_fixture = {
                         "id": 1,
-                        "text": 'I am a post.',
+                        "text": 'I am a message.',
                         "user": {
                                  "bio": None,
                                  "id": 1,
@@ -196,13 +196,13 @@ class MsgboardTestCase(unittest.TestCase):
 
     def test_get_post(self):
         self.test_post()
-        response = self.get('/post/1')
+        response = self.get('/message/1')
         del response['created']
         del response['user']['created']
 
         post_fixture = {
                         "id": 1,
-                        "text": 'I am a post.',
+                        "text": 'I am a message.',
                         "user": {
                                  "bio": None,
                                  "id": 1,
@@ -211,24 +211,24 @@ class MsgboardTestCase(unittest.TestCase):
                        }
         assert post_fixture == response
 
-    def test_edit_post(self):
-        """Test that a user can edit their own post
+    def test_edit_message(self):
+        """Test that a user can edit their own message
 
         """
 
         self.test_get_post()
         edited_post_fixture = {
                                "id": 1,
-                               "text": 'I am an edited post.',
+                               "text": 'I am an edited message.',
                                "user": {
                                         "bio": None,
                                         "id": 1,
                                         "username": 'testuser'
                                        }
                               }
-        edit_content = {"text": 'I am an edited post.'}
+        edit_content = {"text": 'I am an edited message.'}
         headers = self.make_base64_header("testuser", "testpass")
-        response = self.put('/post/1', headers=headers, data=edit_content)
+        response = self.put('/message/1', headers=headers, data=edit_content)
 
         del response["created"]
         del response["user"]["created"]
@@ -243,7 +243,7 @@ class MsgboardTestCase(unittest.TestCase):
 
         # Create fixtures
         wrong_user_fixture = {
-                              "message": "You are not this post's author."
+                              "message": "You are not this message's author."
                              }
         no_login_fixture = None
         nonexistent_user_fixture = None
@@ -265,7 +265,7 @@ class MsgboardTestCase(unittest.TestCase):
 
         # Try to edit first user's post
         headers = self.make_base64_header("testuser2", "testpass")
-        response = self.put('/post/1', headers=headers, data=data,
+        response = self.put('/message/1', headers=headers, data=data,
                             content_type='application/json')
 
         assert wrong_user_fixture == response

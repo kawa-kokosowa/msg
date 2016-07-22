@@ -94,11 +94,11 @@ class User(flask_restful.Resource):
             return new_user.to_dict()
 
 
-class Posts(flask_restful.Resource):
+class Messages(flask_restful.Resource):
 
     def get(self):
         json_data = flask.request.get_json(force=True)
-        query = db.session.query(models.Post)
+        query = db.session.query(models.Message)
 
         if 'limit' in json_data:
             limit = int(json_data['limit'])
@@ -112,17 +112,17 @@ class Posts(flask_restful.Resource):
         results = query.all()
 
         if results is None:
-            message = "No posts found at offset %s limit %s"
+            message = "No messages found at offset %s limit %s"
             flask_restful.abort(404, message=message)
         else:
             return [r.to_dict() for r in results]
 
 
-class Post(flask_restful.Resource):
+class Message(flask_restful.Resource):
 
     @auth.login_required
-    def put(self, post_id):
-        """Edit an existing post.
+    def put(self, message_id):
+        """Edit an existing message.
 
         """
 
@@ -131,19 +131,19 @@ class Post(flask_restful.Resource):
             text = json_data['text']
         except:
             raise Exception(json_data)
-        result = db.session.query(models.Post).get(post_id)
+        result = db.session.query(models.Message).get(message_id)
 
         if result.user.username == auth.username():
             result.text = text
             db.session.commit()
-            return self.get(post_id)
+            return self.get(message_id)
 
         else:
-            flask_restful.abort(400, message="You are not this post's author.")
+            flask_restful.abort(400, message="You are not this message's author.")
 
     @auth.login_required
     def post(self):
-        """Create a new post.
+        """Create a new message.
 
         """
 
@@ -152,44 +152,44 @@ class Post(flask_restful.Resource):
         user_id = (db.session.query(models.User)
                    .filter(models.User.username == auth.username())
                    .first().id)
-        new_post = models.Post(user_id, text)
-        db.session.add(new_post)
+        new_message = models.Message(user_id, text)
+        db.session.add(new_message)
         db.session.commit()
-        return self.get(new_post.id)
+        return self.get(new_message.id)
 
     @auth.login_required
-    def delete(self, post_id):
-        """Delete a specific post.
+    def delete(self, message_id):
+        """Delete a specific message.
 
         """
 
-        result = db.session.query(models.Post).get(post_id)
+        result = db.session.query(models.Message).get(message_id)
 
         if result.user.username == auth.username():
             db.session.delete(result)
             db.session.commit()
             # TODO: return SOMETHING!
         else:
-            message = "You're not the author of post %s" % post_id
+            message = "You're not the author of message %d" % message_id
             flask_restful.abort(400, message=message)
 
-    def get(self, post_id):
+    def get(self, message_id):
         """Get a specific post.
 
         """
 
-        result = db.session.query(models.Post).get(post_id)
+        result = db.session.query(models.Message).get(message_id)
 
         if result:
             return result.to_dict()
         else:
-            message = "Cannot find post by id: %s" % post_id
+            message = "Cannot find message by id: %s" % message_id
             flask_restful.abort(404, message=message)
 
 
 class Stream(flask_restful.Resource):
     """A live event stream (especiall for JavaScript
-    EventSource) for new posts.
+    EventSource) for new messages.
 
     """
 
@@ -208,26 +208,26 @@ class Stream(flask_restful.Resource):
         with app.app_context():
 
             try:
-                result = (db.session.query(models.Post).limit(1)
+                result = (db.session.query(models.Message).limit(1)
                           .order_by(flask_sqlalchemy
-                                    .desc(models.Post.created)))
-                latest_post_id = result.id
+                                    .desc(models.Message.created)))
+                latest_message_id = result.id
             except AttributeError:
                 # .id will raise AttributeError if
                 # the query doesn't match anything
-                latest_post_id = 0
+                latest_message_id = 0
 
         while True:
 
             with app.app_context():
-                posts = (db.session.query(models.Post)
-                         .filter(models.Post.id > latest_post_id)
-                         .order_by(models.Post.id.asc()).all())
+                messages = (db.session.query(models.Message)
+                            .filter(models.Message.id > latest_message_id)
+                            .order_by(models.Message.id.asc()).all())
 
-            if posts:
-                latest_post_id = posts[-1].id
-                newer_posts = [post.to_dict() for post in posts]
-                yield "data: " + json.dumps(newer_posts) + "\n\n"
+            if messages:
+                latest_message_id = messages[-1].id
+                newer_messages = [message.to_dict() for message in messages]
+                yield "data: " + json.dumps(newer_messages) + "\n\n"
 
             with app.app_context():
                 gevent.sleep(app.config['SLEEP_RATE'])
@@ -254,14 +254,13 @@ def init_db():
     db.session.commit()
 
 
-api.add_resource(Post, '/post', '/post/<int:post_id>')
-api.add_resource(Posts, '/posts', '/posts/<int:page>')
+api.add_resource(Message, '/message', '/message/<int:message_id>')
+api.add_resource(Messages, '/messages', '/messages/<int:page>')
 api.add_resource(Stream, '/stream')
 api.add_resource(User, '/user', '/user/<int:user_id>', '/user/<username>')
 
 
 if __name__ == '__main__':
-    raise Exception("oOOOOOoOoOOHHHSDOAHAOHA no")
     arguments = docopt.docopt(__doc__)
 
     if arguments['init_db']:

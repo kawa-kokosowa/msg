@@ -42,7 +42,7 @@ class User(Base):
                 'created': self.created.isoformat("T") + 'Z'}
 
 
-class Post(Base):
+class Message(Base):
     """A submission to the site, just some text,
     a timestamp, an associated user, and an ID.
 
@@ -56,7 +56,7 @@ class Post(Base):
                                 default=datetime.datetime.utcnow)
     text = sqlalchemy.Column(sqlalchemy.String())
 
-    user = sqlalchemy.orm.relationship('User', foreign_keys='Post.user_id',
+    user = sqlalchemy.orm.relationship('User', foreign_keys='Message.user_id',
                                        lazy='subquery')
 
     def __init__(self, user_id, text):
@@ -64,7 +64,7 @@ class Post(Base):
         self.text = text
 
     def __repr__(self):
-        return '<Post #%s>' % self.id
+        return '<Message #%s>' % self.id
 
     def to_dict(self):
         """Return a dictionary representation of this
