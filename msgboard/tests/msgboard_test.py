@@ -2,6 +2,11 @@
 
 """
 
+# Hack to get tests to work right without having
+# to install the package every time.
+#import sys
+#sys.path.append('../..')
+
 import os
 import json
 import base64
@@ -9,20 +14,20 @@ import unittest
 import tempfile
 import functools
 
-from msgapi import msgboard
+from .. import msg
 
 
 class MsgboardTestCase(unittest.TestCase):
 
     def setUp(self):
-        self.db_fd, msgboard.app.config['DATABASE'] = tempfile.mkstemp()
-        msgboard.app.config['TESTING'] = True
-        self.app = msgboard.app.test_client()
-        msgboard.init_db()
+        self.db_fd, msg.app.config['DATABASE'] = tempfile.mkstemp()
+        msg.app.config['TESTING'] = True
+        self.app = msg.app.test_client()
+        msg.init_db()
 
     def tearDown(self):
         os.close(self.db_fd)
-        os.unlink(msgboard.app.config['DATABASE'])
+        os.unlink(msg.app.config['DATABASE'])
 
     def test_empty_db(self):
         """If the database is empty, a GET request
@@ -206,7 +211,7 @@ class MsgboardTestCase(unittest.TestCase):
         edit_content = {
                         "text": "Can't edit these nuts."
                        }
-        data = json.dumps(edit_content)
+        data = edit_content
 
         # Create user and post
         self.test_get_post()

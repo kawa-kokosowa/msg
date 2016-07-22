@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-"""msgapi package installer.
+"""msgboard package installer.
 
 """
 
@@ -9,9 +9,9 @@ from setuptools import setup
 from distutils.version import StrictVersion
 
 
-exec(open('msgapi/__init__.py').read())
-setup(name='msgapi',
-      packages=['msgapi'],
+exec(open('msgboard/__init__.py').read())
+setup(name='msgboard',
+      packages=['msgboard'],
       version=__version__,
       description='msgboard server backend',
       setup_requires=['setuptools-markdown'],

@@ -11,8 +11,8 @@ Options:
 
 """
 
-from msgapi import models
-from msgapi import config
+from . import models
+from . import config
 
 import os
 import json
@@ -131,7 +131,10 @@ class Post(flask_restful.Resource):
         """
 
         json_data = flask.request.get_json(force=True)
-        text = json_data['text']
+        try:
+            text = json_data['text']
+        except:
+            raise Exception(json_data)
         result = db.session.query(models.Post).get(post_id)
 
         if result.user.username == auth.username():
