@@ -16,18 +16,14 @@ use in web development.
 ## Features
 
   * RESTful
+  * Has functioning event stream, with documentation
+  * Works in both Python 2 and Python 3
   * Use any database supported by SQLAlchemy
   * Easy to configure
   * Rate limiting
   * Post/edit/delete messages
   * Users
   * Thoroughly tested, stable
-
-## Planned Features
-
-  * Search
-  * Tags
-  * Categories
 
 ## Deploying
 
