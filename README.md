@@ -1,5 +1,7 @@
 # msgboard
 
+[![Travis CI Status](https://travis-ci.org/lillian-gardenia-seabreeze/msgboard.svg)](https://travis-ci.org/lillian-gardenia-seabreeze/msgboard)
+
 msgboard is a RESTful messaging solution, implemented in Python,
 with user accounts; ability to edit, delete, and submit posts.
 
