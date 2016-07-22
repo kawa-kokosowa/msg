@@ -7,7 +7,6 @@ before_install:
     - "sudo apt-get update -qq"
     - "pip install -r requirements/travis.txt"
 script:
-    - cd msgboard
-    - py.test tests --doctest-modules --pep8 msg.py -v --cov-report term-missing --cov=msg.py
+    - py.test tests --doctest-modules --pep8 msgboard/msg.py -v --cov-report term-missing --cov=msgboard/msg.py
 after_success:
     - coveralls
