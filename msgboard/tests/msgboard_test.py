@@ -2,11 +2,6 @@
 
 """
 
-# Hack to get tests to work right without having
-# to install the package every time.
-#import sys
-#sys.path.append('../..')
-
 import os
 import json
 import base64
