@@ -139,7 +139,8 @@ class Message(flask_restful.Resource):
             return self.get(message_id)
 
         else:
-            flask_restful.abort(400, message="You are not this message's author.")
+            message = "You are not this message's author."
+            flask_restful.abort(400, message=message)
 
     @auth.login_required
     def post(self):
