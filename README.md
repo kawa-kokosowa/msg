@@ -3,28 +3,18 @@
 [![Travis CI Status](https://travis-ci.org/lillian-gardenia-seabreeze/msgboard.svg)](https://travis-ci.org/lillian-gardenia-seabreeze/msgboard)
 [![Coveralls Code Coverage](https://img.shields.io/coveralls/lillian-gardenia-seabreeze/msgboard.svg)](https://coveralls.io/github/lillian-gardenia-seabreeze/msgboard)
 
-msgboard is a RESTful messaging solution, implemented in Python,
-with user accounts; ability to edit, delete, and submit posts.
+msgboard is a simple, but powerful RESTful [service-oriented architecture (SOA)](https://en.wikipedia.org/wiki/Service-oriented_architecture)
+messaging library.
 
-msgboard is general purpose, it could be used for an instant
-message service, a forum, or really anything else that is
-message-based (e.g., Twitter!).
+msgboard focuses on the overlapping core features of any messaging system,
+so you can skip to implementing the cool parts. You can use msgboard to
+build live chat/instant messenger, a forum, a Twitter clone.
 
-The point of this project is to create an elegant, efficient,
-and intuitive barebones, tiny-scoped message library for general
-use in web development.
+msgboard runs in Python 2 and 3. msgboard can be configured to use
+any database supported by SQLAlchemy.
 
-## Features
-
-  * RESTful
-  * Has functioning event stream, with documentation
-  * Works in both Python 2 and Python 3
-  * Use any database supported by SQLAlchemy
-  * Easy to configure
-  * Rate limiting
-  * Post/edit/delete messages
-  * Users
-  * Thoroughly tested, stable
+The beauty in this project is that its focus/scope is tiny, the barebones
+of any messaging system, which we perfect for you.
 
 ## Test it out!
 
@@ -38,6 +28,8 @@ If you're using `httpie` here are some example commands:
 
   1. Create a user: `http POST localhost:5000/user username=kitten password=yarn`
   2. Create a message: `http POST localhost:5000/message text="i love kittens" --auth kitten:yarn`
+
+Also, check out the `example/` directory!
 
 ## Deploying
 
@@ -58,8 +50,8 @@ Fetch a user by `user_id` or `username`.
 
 HTTPie examples:
 
-  * http GET localhost:5000/user/1
-  * http GET localhost:5000/user/kitten
+  * `http GET localhost:5000/user/1`
+  * `http GET localhost:5000/user/kitten`
 
 #### Post
 
@@ -81,7 +73,7 @@ Get a range of messages using a "limit" and an "offset."
 
 HTTPie examples:
 
-  * `HTTP GET localhost:5000/messages limit=10 offset=20`
+  * `http GET localhost:5000/messages limit=10 offset=20`
 
 ### Message
 
