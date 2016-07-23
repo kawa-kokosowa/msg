@@ -8,7 +8,7 @@ messaging library.
 
 msgboard focuses on the overlapping core features of any messaging system,
 so you can skip to implementing the cool parts. You can use msgboard to
-build live chat/instant messenger, a forum, a Twitter clone.
+build live chat/instant messenger, a forum, a Twitter clone, a blog, etc.
 
 msgboard runs in Python 2 and 3. msgboard can be configured to use
 any database supported by SQLAlchemy.
