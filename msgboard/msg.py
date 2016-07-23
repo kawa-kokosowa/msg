@@ -1,4 +1,3 @@
-# TODO: use session connectio npooling for requests
 """msgboard: simple restful text message board.
 
 Usage:
@@ -39,16 +38,28 @@ auth = HTTPBasicAuth()
 
 
 class User(flask_restful.Resource):
-    """API tools for managing, creating, etc.,
-    users in the system.
+    """User account resource; manage users
+    in the system.
 
     """
 
     def get(self, user_id=None, username=None):
-        """Get a specific user's info.
+        """Get a specific user's info by user ID
+        *or* username.
 
-        Should elaborate. Be able to specify username
-        or by user_id.
+        This returns a 400 if neither user_id nor
+        username was provided. Returns a 404 if
+        cannot find a user by the provided user ID
+        or username.
+
+        Arguments:
+            user_id (int|None): --
+            username (str|None): --
+
+        Returns:
+            None: If aborted.
+            dict: If such a user is found, the return value
+                is a dictionary describing the user.
 
         """
 
@@ -76,11 +87,26 @@ class User(flask_restful.Resource):
     def post(self):
         """Create a new user.
 
+        If a user already exists with the provided
+        username, an HTTP 400 is sent.
+
+        Returns:
+            dict: If the user was successfully created,
+                return a dictionary describing that
+                created user.
+            None: If aborted.
+
         """
 
         json_data = flask.request.get_json(force=True)
-        username = json_data['username']
-        password = json_data['password']
+
+        try:
+            username = json_data['username']
+            password = json_data['password']
+        except KeyError:
+            message = "Must specify username and password."
+            flask_restful.abort(400, message=message)
+
         bio = json_data.get('bio')
         new_user = models.User(username, password, bio=bio)
         db.session.add(new_user)
@@ -95,9 +121,29 @@ class User(flask_restful.Resource):
 
 
 class Messages(flask_restful.Resource):
+    """Manage more than one message at a time!
 
+    """
+
+    # TODO: Make hard limits on this. Force people
+    # to always provide limit and offset (config)
+    # and implement abort when both not provided,
+    # as well as if the scope is too large.
     def get(self):
+        """Get a range of messages using a "limit"
+        and an "offset."
+
+        Returns:
+            list: list of dictionaries describing
+                messages, if successful.
+            None: If aborted.
+
+        """
+
         json_data = flask.request.get_json(force=True)
+        # NOTE: the logic this implies is that if neither
+        # limit nor offset is specified, all messages will
+        # be returned (not the best behavior imo).
         query = db.session.query(models.Message)
 
         if 'limit' in json_data:
@@ -119,10 +165,16 @@ class Messages(flask_restful.Resource):
 
 
 class Message(flask_restful.Resource):
+    """Message resource; manage a single message!
+
+    """
 
     @auth.login_required
     def put(self, message_id):
         """Edit an existing message.
+
+        Argument:
+            message_id (int): --
 
         """
 
@@ -161,6 +213,9 @@ class Message(flask_restful.Resource):
     @auth.login_required
     def delete(self, message_id):
         """Delete a specific message.
+
+        Argument:
+            message_id (int): --
 
         """
 
@@ -236,6 +291,24 @@ class Stream(flask_restful.Resource):
 
 @auth.verify_password
 def get_password(username, password):
+    """For HTTPBasicAuth; this simply gets the
+    corresponding user, then return the result
+    of checking that password.
+
+    Arguments:
+        username (str):
+        password (str):
+
+    See Also:
+        flask_httpauth
+
+    Returns:
+        bool: True if the password is correct for the supplied
+            username, False otherwise.
+
+    """
+
+    the password 
     result = (db.session.query(models.User)
               .filter(models.User.username == username).first())
 
@@ -248,6 +321,7 @@ def get_password(username, password):
 def init_db():
     """For use on command line for setting up
     the database.
+
     """
 
     models.Base.metadata.drop_all(bind=db.engine)

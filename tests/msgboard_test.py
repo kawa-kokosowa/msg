@@ -14,12 +14,14 @@ from ..msgboard import msg
 
 class MsgboardTestCase(unittest.TestCase):
 
+    # TODO: docstring
     def setUp(self):
         self.db_fd, msg.app.config['DATABASE'] = tempfile.mkstemp()
         msg.app.config['TESTING'] = True
         self.app = msg.app.test_client()
         msg.init_db()
 
+    # TODO: docstring
     def tearDown(self):
         os.close(self.db_fd)
         os.unlink(msg.app.config['DATABASE'])
@@ -39,6 +41,23 @@ class MsgboardTestCase(unittest.TestCase):
         self.post, etc. This only happens when there is no such
         attribute of name...
 
+        Note:
+            If you don't know, __getattr__ is only activated
+            when a property is accessed (attribute_name), yet
+            doesn't actually exist.
+
+        Arguments:
+            attribute_name (str): One of: post, get, put, or delete.
+
+        Raises:
+            AttributeError: if attribute_name is not one of post, get,
+                put, or delete.
+
+        Returns:
+            partial: returns the self.call method, except with the
+                first argument, the request type, already filled out
+                depending on the attribute_name, e.g., post, get.
+
         """
 
         if attribute_name.lower() in ('post', 'get', 'put', 'delete'):
@@ -57,7 +76,7 @@ class MsgboardTestCase(unittest.TestCase):
             password (str):
 
         Returns:
-            dict
+            dict: Typical HTTPBasicAuth header for authorization.
 
         """
 
@@ -66,15 +85,19 @@ class MsgboardTestCase(unittest.TestCase):
         headers = {'Authorization': 'Basic '.encode('utf-8') + base64_creds}
         return headers
 
+    # TODO: doc *args and **kwargs
     def call(self, method, *args, **kwargs):
         """Because we're tired of entering content_type and
         translating JSON constantly!
 
+        Arguments:
+            method (str): a valid request method, e.g., post.
+            *args: --
+            **kwargs: --
+
         """
 
         method = method.lower()
-
-        # we want this no matter what
         kwargs['content_type'] = 'application/json'
 
         if 'data' in kwargs:
@@ -133,6 +156,12 @@ class MsgboardTestCase(unittest.TestCase):
         assert response_fixture == response
 
     def test_get_user(self):
+        """Prove we can get a user by user ID
+        *or* username.
+
+        """
+
+        a user and then get that users 
         self.test_create_user()
         user_fixture = {
                         "username": 'testuser',
@@ -151,6 +180,11 @@ class MsgboardTestCase(unittest.TestCase):
         assert user_fixture == name_response
 
     def test_get_wrong_user(self):
+        """Verify the behavior for making
+        various erroneous calls to get user.
+
+        """
+
         self.test_create_user()
         no_info_fixture = {
                            "message": "Must specify user_id or username."
@@ -172,6 +206,10 @@ class MsgboardTestCase(unittest.TestCase):
         assert name_response == no_name_fixture
 
     def test_post(self):
+        """Test creating a message.
+
+        """
+
         self.test_create_user()
 
         message_content = {"text": 'I am a message.'}
