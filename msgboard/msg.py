@@ -179,10 +179,7 @@ class Message(flask_restful.Resource):
         """
 
         json_data = flask.request.get_json(force=True)
-        try:
-            text = json_data['text']
-        except:
-            raise Exception(json_data)
+        text = json_data['text']
         result = db.session.query(models.Message).get(message_id)
 
         if result.user.username == auth.username():
