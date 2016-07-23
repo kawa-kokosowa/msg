@@ -161,7 +161,7 @@ class MsgboardTestCase(unittest.TestCase):
 
         """
 
-        a user and then get that users 
+        # create a user and then get that user
         self.test_create_user()
         user_fixture = {
                         "username": 'testuser',

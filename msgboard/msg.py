@@ -308,7 +308,6 @@ def get_password(username, password):
 
     """
 
-    the password 
     result = (db.session.query(models.User)
               .filter(models.User.username == username).first())
 
