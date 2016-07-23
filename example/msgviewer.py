@@ -23,7 +23,7 @@ def posts(page=1):
     offset = posts_per_page * page
     json_payload = json.dumps({'offset': offset,
                                'limit': posts_per_page})
-    request = requests.get("http://localhost:5000/posts",
+    request = requests.get("http://localhost:5000/messages",
                            data=json_payload)
     posts = request.json()
     return flask.render_template('get_view.html',

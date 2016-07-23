@@ -1,8 +1,8 @@
 # msgboard Example
 
 This directory contains code to demonstrate the power of
-`msgboard`. This example is a simple imageboard website.
+`msgboard`.
 
-To start the example just use the command `python msgviewer.py`.
-Note that you need to actually be running msgboard/api for the
-example to work.
+  1. Start msgboard
+  2. `python msgviewer.py`
+  3. Open http://127.0.0.1:8080/ in the web browser.
