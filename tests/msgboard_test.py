@@ -37,7 +37,8 @@ class TestEverything(unittest.TestCase):
         """
 
         message_range = {"offset": 0, "limit": 10}
-        response = self.get('/messages', data=message_range)
+        status, response = self.get('/messages', data=message_range)
+        assert status == 200
         assert [] == response
 
     def __getattr__(self, attribute_name):
@@ -109,7 +110,7 @@ class TestEverything(unittest.TestCase):
             kwargs['data'] = json.dumps(kwargs['data'])
 
         response = getattr(self.app, method)(*args, **kwargs)
-        return json.loads(response.get_data(as_text=True))
+        return response.status_code, json.loads(response.get_data(as_text=True))
 
     def test_create_user(self):
         """Create a user by POST'ing the correct
@@ -121,7 +122,8 @@ class TestEverything(unittest.TestCase):
                      "username": 'testuser',
                      "password": 'testpass'
                     }
-        response = self.post('/user', data=user_data)
+        status, response = self.post('/user', data=user_data)
+        assert status == 200
 
         # parse the JSON response and remove the created
         # datetime because that's not predictable
@@ -138,7 +140,8 @@ class TestEverything(unittest.TestCase):
     def test_create_user_without_username_password(self):
         # test creating a new user without
         # specifying username or password
-        response = self.post('/user', data={'lol': 'lol'})
+        status, response = self.post('/user', data={'lol': 'lol'})
+        assert status == 400
         assert response == {'message': 'Must specify username and password.'}
 
     def test_create_existing_user(self):
@@ -153,15 +156,12 @@ class TestEverything(unittest.TestCase):
                      "username": 'testuser',
                      "password": 'testpass'
                     }
-
         message = "A user already exists with username: testuser"
-
         response_fixture = {
                             "message": message
                            }
-
-        response = self.post('/user', data=user_data)
-
+        status, response = self.post('/user', data=user_data)
+        assert status == 400
         assert response_fixture == response
 
     def test_get_user(self):
@@ -178,12 +178,14 @@ class TestEverything(unittest.TestCase):
                         "bio": None
                        }
         # First test by using the user_id
-        id_response = self.get('/user/1')
+        status, id_response = self.get('/user/1')
+        assert status == 200
         del id_response["created"]
         assert user_fixture == id_response
 
         # Then test by using the username
-        name_response = self.get('/user/testuser')
+        status, name_response = self.get('/user/testuser')
+        assert status == 200
         del name_response["created"]
 
         assert user_fixture == name_response
@@ -205,13 +207,16 @@ class TestEverything(unittest.TestCase):
                            "message": "No user matching username: notauser"
                           }
 
-        no_info_response = self.get('/user')
+        status, no_info_response = self.get('/user')
+        assert status == 400
         assert no_info_response == no_info_fixture
 
-        id_response = self.get('/user/69')
+        status, id_response = self.get('/user/69')
+        assert status == 404
         assert id_response == no_id_fixture
 
-        name_response = self.get('/user/notauser')
+        status, name_response = self.get('/user/notauser')
+        assert status == 404
         assert name_response == no_name_fixture
 
     def test_post(self):
@@ -222,7 +227,8 @@ class TestEverything(unittest.TestCase):
         self.test_create_user()
         message_content = {"text": 'I am a message.'}
         headers = self.make_base64_header("testuser", "testpass")
-        response = self.post('/message', headers=headers, data=message_content)
+        status, response = self.post('/message', headers=headers, data=message_content)
+        assert status == 200
 
         del response["created"]
         del response["user"]["created"]
@@ -240,9 +246,21 @@ class TestEverything(unittest.TestCase):
         # you're getting NONE here because the user isn't created
         assert post_fixture == response
 
+    def test_create_message_without_text(self):
+        """Try to create a message without text.
+
+        """
+
+        self.test_create_user()
+        headers = self.make_base64_header("testuser", "testpass")
+        status, response = self.post('/message', headers=headers, data={'textg': 'whoops'})
+        assert status == 400
+        assert response == {'message': 'You must specify text field.'}
+
     def test_get_post(self):
         self.test_post()
-        response = self.get('/message/1')
+        status, response = self.get('/message/1')
+        assert status == 200
         del response['created']
         del response['user']['created']
 
@@ -274,7 +292,8 @@ class TestEverything(unittest.TestCase):
                               }
         edit_content = {"text": 'I am an edited message.'}
         headers = self.make_base64_header("testuser", "testpass")
-        response = self.put('/message/1', headers=headers, data=edit_content)
+        status, response = self.put('/message/1', headers=headers, data=edit_content)
+        assert status == 200
 
         del response["created"]
         del response["user"]["created"]
@@ -311,9 +330,10 @@ class TestEverything(unittest.TestCase):
 
         # Try to edit first user's post
         headers = self.make_base64_header("testuser2", "testpass")
-        response = self.put('/message/1', headers=headers, data=data,
-                            content_type='application/json')
+        status, response = self.put('/message/1', headers=headers, data=data,
+                                    content_type='application/json')
 
+        assert status == 400
         assert wrong_user_fixture == response
 
 
