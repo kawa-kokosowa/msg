@@ -368,5 +368,24 @@ class TestEverything(unittest.TestCase):
         assert status == 400
         assert wrong_user_fixture == response
 
+    def test_listen_for_event(self):
+        from sseclient import SSEClient
+        from threading import Thread
+        from threading import Event
+        from multiprocessing import Queue
+
+        def lol():
+            return self.get('/stream')
+
+        def wrapper(func, queue):
+            queue.put(func())
+
+        q1, q2 = Queue(), Queue()
+        Thread(target=wrapper, args=(lol, q1)).start()
+        t = Thread(target=wrapper, args=(self.test_post, q2))
+        t.start()
+        t.join(timeout=0.1)
+        raise Exception(q2.get(), q1.get())
+
 if __name__ == '__main__':
     unittest.main()
