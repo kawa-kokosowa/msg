@@ -12,7 +12,7 @@ import functools
 from ..msgboard import msg
 
 
-class BaseTest(unittest.TestCase):
+class TestEverything(unittest.TestCase):
     """So we can have one database connection throughout
     inherit this for testing resources.
 
@@ -69,11 +69,11 @@ class BaseTest(unittest.TestCase):
                                                      attribute_name.lower())
             return specific_call_method
 
-        error_message = "%s is not valid method, or you goofed" % attribute_name
+        error_message = ("%s is neither an HTTP method, nor an "
+                         "attribute" % attribute_name)
         raise AttributeError(error_message)
 
-    @staticmethod
-    def make_base64_header(username, password):
+    def make_base64_header(self, username, password):
         """Create Authorization header dict, for HTTPBasicAuth.
 
         Arguments:
@@ -110,9 +110,6 @@ class BaseTest(unittest.TestCase):
 
         response = getattr(self.app, method)(*args, **kwargs)
         return json.loads(response.get_data(as_text=True))
-
-
-class TestUser(BaseTest):
 
     def test_create_user(self):
         """Create a user by POST'ing the correct
@@ -216,16 +213,12 @@ class TestUser(BaseTest):
         name_response = self.get('/user/notauser')
         assert name_response == no_name_fixture
 
-
-class TestMessage(BaseTest):
-
     def test_post(self):
         """Test creating a message.
 
         """
 
-        TestUser.test_create_user(self)
-
+        self.test_create_user()
         message_content = {"text": 'I am a message.'}
         headers = self.make_base64_header("testuser", "testpass")
         response = self.post('/message', headers=headers, data=message_content)
