@@ -224,7 +224,7 @@ class Message(flask_restful.Resource):
         result = db.session.query(models.Message).get(message_id)
 
         if result is None:
-            flask_restful.abort(400, message="No post by id %d" % message_id)
+            flask_restful.abort(404, message="No post by id %d" % message_id)
 
         if result.user.username == auth.username():
             db.session.delete(result)
@@ -232,7 +232,7 @@ class Message(flask_restful.Resource):
             return {}
         else:
             message = "You're not the author of message %d" % message_id
-            flask_restful.abort(400, message=message)
+            flask_restful.abort(401, message=message)
 
     def get(self, message_id):
         """Get a specific post.

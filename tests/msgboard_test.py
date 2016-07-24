@@ -113,15 +113,15 @@ class TestEverything(unittest.TestCase):
         return (response.status_code,
                 json.loads(response.get_data(as_text=True)))
 
-    def test_create_user(self):
+    def test_create_user(self, username='testuser', password='testpass', id_=1):
         """Create a user by POST'ing the correct
         JSON data to the /user endpoint.
 
         """
 
         user_data = {
-                     "username": 'testuser',
-                     "password": 'testpass'
+                     "username": username,
+                     "password": password
                     }
         status, response = self.post('/user', data=user_data)
         assert status == 200
@@ -131,8 +131,8 @@ class TestEverything(unittest.TestCase):
         del response["created"]
         # We expect the response will be this.
         user_fixture = {
-                        "username": "testuser",
-                        "id": 1,
+                        "username": username,
+                        "id": id_,
                         "bio": None
                        }
         # test the expected response vs. actual
@@ -315,6 +315,16 @@ class TestEverything(unittest.TestCase):
         status, response = self.delete('/message/1')
         assert status == 401
 
+        # attempt to delete post with alternative user credenitals
+        self.test_create_user("honkhonk", "honkety", 2)
+        headers = self.make_base64_header("honkhonk", "honkety")
+        status, response = self.delete('/message/1', headers=headers)
+        assert status == 401
+
+        # attempt to delete a post that doesn't exist
+        status, response = self.delete('/message/5555', headers=headers)
+        assert status == 404
+
         # delete post belonging to this user
         headers = self.make_base64_header("testuser", "testpass")
         status, response = self.delete('/message/1', headers=headers)
@@ -355,7 +365,6 @@ class TestEverything(unittest.TestCase):
 
         assert status == 400
         assert wrong_user_fixture == response
-
 
 if __name__ == '__main__':
     unittest.main()
