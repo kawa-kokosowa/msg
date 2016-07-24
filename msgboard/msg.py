@@ -63,14 +63,14 @@ class User(flask_restful.Resource):
 
         """
 
-        if user_id:
+        if user_id is not None:
             user = db.session.query(models.User).get(user_id)
 
             if user is None:
                 message = "No user matching ID: %s" % user_id
                 flask_restful.abort(404, message=message)
 
-        elif username:
+        elif username is not None:
             user = (db.session.query(models.User)
                     .filter(models.User.username == username).first())
 
@@ -198,7 +198,12 @@ class Message(flask_restful.Resource):
         """
 
         json_data = flask.request.get_json(force=True)
-        text = json_data['text']
+
+        try:
+            text = json_data['text']
+        except KeyError:
+            flask_Restful.abort(400, "You must specify text field.")
+
         user_id = (db.session.query(models.User)
                    .filter(models.User.username == auth.username())
                    .first().id)
@@ -218,10 +223,13 @@ class Message(flask_restful.Resource):
 
         result = db.session.query(models.Message).get(message_id)
 
+        if result is None:
+            flask_restful.abort(400, message="No post by id %d" % message_id)
+
         if result.user.username == auth.username():
             db.session.delete(result)
             db.session.commit()
-            # TODO: return SOMETHING!
+            return {}
         else:
             message = "You're not the author of message %d" % message_id
             flask_restful.abort(400, message=message)
