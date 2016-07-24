@@ -12,7 +12,11 @@ import functools
 from ..msgboard import msg
 
 
-class MsgboardTestCase(unittest.TestCase):
+class BaseTest(unittest.TestCase):
+    """So we can have one database connection throughout
+    inherit this for testing resources.
+
+    """
 
     # TODO: docstring
     def setUp(self):
@@ -65,7 +69,7 @@ class MsgboardTestCase(unittest.TestCase):
                                                      attribute_name.lower())
             return specific_call_method
 
-        raise AttributeError("%s is not valid method" % attribute_name)
+        raise AttributeError("%s is not valid method, or you goofed" % attribute_name)
 
     @staticmethod
     def make_base64_header(username, password):
@@ -106,18 +110,19 @@ class MsgboardTestCase(unittest.TestCase):
         response = getattr(self.app, method)(*args, **kwargs)
         return json.loads(response.get_data(as_text=True))
 
+
+class TestUser(BaseTest):
+
     def test_create_user(self):
         """Create a user by POST'ing the correct
         JSON data to the /user endpoint.
 
         """
 
-        # Create and send the user data
         user_data = {
                      "username": 'testuser',
                      "password": 'testpass'
                     }
-
         response = self.post('/user', data=user_data)
 
         # parse the JSON response and remove the created
@@ -131,6 +136,11 @@ class MsgboardTestCase(unittest.TestCase):
                        }
         # test the expected response vs. actual
         assert user_fixture == response
+
+        # test creating a new user without
+        # specifying username or password
+        response = self.app.post('/user')
+        assert response.status_code == 400
 
     def test_create_existing_user(self):
         """Attempt to created a user that is already
@@ -205,12 +215,15 @@ class MsgboardTestCase(unittest.TestCase):
         name_response = self.get('/user/notauser')
         assert name_response == no_name_fixture
 
+
+class TestMessage(BaseTest):
+
     def test_post(self):
         """Test creating a message.
 
         """
 
-        self.test_create_user()
+        TestUser.test_create_user(self)
 
         message_content = {"text": 'I am a message.'}
         headers = self.make_base64_header("testuser", "testpass")
