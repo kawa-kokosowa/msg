@@ -69,7 +69,8 @@ class BaseTest(unittest.TestCase):
                                                      attribute_name.lower())
             return specific_call_method
 
-        raise AttributeError("%s is not valid method, or you goofed" % attribute_name)
+        error_message = "%s is not valid method, or you goofed" % attribute_name
+        raise AttributeError(error_message)
 
     @staticmethod
     def make_base64_header(username, password):
