@@ -202,7 +202,7 @@ class Message(flask_restful.Resource):
         try:
             text = json_data['text']
         except KeyError:
-            flask_Restful.abort(400, "You must specify text field.")
+            flask_restful.abort(400, "You must specify text field.")
 
         user_id = (db.session.query(models.User)
                    .filter(models.User.username == auth.username())
