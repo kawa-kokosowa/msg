@@ -135,10 +135,11 @@ class TestEverything(unittest.TestCase):
         # test the expected response vs. actual
         assert user_fixture == response
 
+    def test_create_user_without_username_password(self):
         # test creating a new user without
         # specifying username or password
-        response = self.app.post('/user')
-        assert response.status_code == 400
+        response = self.post('/user', data={'lol': 'lol'})
+        assert response == {'message': 'Must specify username and password.'}
 
     def test_create_existing_user(self):
         """Attempt to created a user that is already
