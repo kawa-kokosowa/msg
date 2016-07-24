@@ -304,6 +304,22 @@ class TestEverything(unittest.TestCase):
 
         assert edited_post_fixture == response
 
+    def test_delete_message(self):
+        """Test that a user can delete their own message
+
+        """
+
+        self.test_post()
+
+        # first attempt to delete without auth
+        status, response = self.delete('/message/1')
+        assert status == 401
+
+        # delete post belonging to this user
+        headers = self.make_base64_header("testuser", "testpass")
+        status, response = self.delete('/message/1', headers=headers)
+        assert status == 200
+
     def test_edit_post_bad_auth(self):
         """Test that unauthorized users cannot edit
         posts.

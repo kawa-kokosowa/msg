@@ -294,6 +294,11 @@ class Stream(flask_restful.Resource):
                 gevent.sleep(app.config['SLEEP_RATE'])
 
 
+@auth.error_handler
+def auth_error():
+    flask_restful.abort(401, message="Unathorized")
+
+
 @auth.verify_password
 def get_password(username, password):
     """For HTTPBasicAuth; this simply gets the
