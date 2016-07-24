@@ -113,7 +113,9 @@ class TestEverything(unittest.TestCase):
         return (response.status_code,
                 json.loads(response.get_data(as_text=True)))
 
-    def test_create_user(self, username='testuser', password='testpass', id_=1):
+    def test_create_user(self, username='testuser',
+                         password='testpass', id_=1):
+
         """Create a user by POST'ing the correct
         JSON data to the /user endpoint.
 
