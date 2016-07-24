@@ -110,7 +110,8 @@ class TestEverything(unittest.TestCase):
             kwargs['data'] = json.dumps(kwargs['data'])
 
         response = getattr(self.app, method)(*args, **kwargs)
-        return response.status_code, json.loads(response.get_data(as_text=True))
+        return (response.status_code,
+                json.loads(response.get_data(as_text=True)))
 
     def test_create_user(self):
         """Create a user by POST'ing the correct
@@ -227,7 +228,8 @@ class TestEverything(unittest.TestCase):
         self.test_create_user()
         message_content = {"text": 'I am a message.'}
         headers = self.make_base64_header("testuser", "testpass")
-        status, response = self.post('/message', headers=headers, data=message_content)
+        status, response = self.post('/message', headers=headers,
+                                     data=message_content)
         assert status == 200
 
         del response["created"]
@@ -253,7 +255,8 @@ class TestEverything(unittest.TestCase):
 
         self.test_create_user()
         headers = self.make_base64_header("testuser", "testpass")
-        status, response = self.post('/message', headers=headers, data={'textg': 'whoops'})
+        status, response = self.post('/message', headers=headers,
+                                     data={'textg': 'whoops'})
         assert status == 400
         assert response == {'message': 'You must specify text field.'}
 
@@ -292,7 +295,8 @@ class TestEverything(unittest.TestCase):
                               }
         edit_content = {"text": 'I am an edited message.'}
         headers = self.make_base64_header("testuser", "testpass")
-        status, response = self.put('/message/1', headers=headers, data=edit_content)
+        status, response = self.put('/message/1', headers=headers,
+                                    data=edit_content)
         assert status == 200
 
         del response["created"]
