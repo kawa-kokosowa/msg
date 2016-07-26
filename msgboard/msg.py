@@ -166,7 +166,7 @@ class Messages(flask_restful.Resource):
         results = query.all()
 
         if results == []:
-            message = ("No messages found at offset %d limit %d" 
+            message = ("No messages found at offset %d limit %d"
                        % (offset, limit))
             flask_restful.abort(404, message=message)
         else:
