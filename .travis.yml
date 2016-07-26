@@ -5,6 +5,8 @@ python:
 before_install:
     - "pip install -U pip"
     - "sudo apt-get update -qq"
+    - "sudo apt-get install redis-server"
+    - "sudo service redis-server start"
     - "pip install -r requirements/travis.txt"
 script:
     - py.test tests --doctest-modules --pep8 msgboard/msg.py -v --cov-report term-missing --cov=msgboard/msg.py

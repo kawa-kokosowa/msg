@@ -1,7 +1,6 @@
-"""msgboard: simple restful text message board.
+"""msgboard: simple REST msg library.
 
 Usage:
-    msgboard.py
     msgboard.py init_db
     msgboard.py -h | --help
 
@@ -10,17 +9,19 @@ Options:
 
 """
 
-from gevent.pywsgi import WSGIServer
-from flask_limiter import Limiter
 from flask_httpauth import HTTPBasicAuth
 
+#import models
+#import config
 from . import models
 from . import config
+
+import flask_limiter
+from flask_sse import sse
 
 import os
 import json
 import docopt
-import gevent
 import flask_restful
 import flask
 import requests
@@ -31,8 +32,14 @@ app = flask.Flask(__name__)
 
 config_path = os.path.dirname(os.path.abspath(__file__))
 app.config.from_pyfile(os.path.join(config_path, "config.py"))
+app.register_blueprint(sse, url_prefix='/stream')
 api = flask_restful.Api(app, catch_all_404s=True)
-limiter = Limiter(app)
+limiter = flask_limiter.Limiter(
+                                app,
+                                key_func=(flask_limiter.util.
+                                          get_remote_address),
+                                global_limits=config.LIMITS_GLOBAL
+                               )
 db = flask_sqlalchemy.SQLAlchemy(app)
 auth = HTTPBasicAuth()
 
@@ -43,6 +50,7 @@ class User(flask_restful.Resource):
 
     """
 
+    @limiter.limit(config.LIMITS_USER_GET)
     def get(self, user_id=None, username=None):
         """Get a specific user's info by user ID
         *or* username.
@@ -84,6 +92,7 @@ class User(flask_restful.Resource):
 
         return user.to_dict()
 
+    @limiter.limit(config.LIMITS_USER_GET)
     def post(self):
         """Create a new user.
 
@@ -129,6 +138,7 @@ class Messages(flask_restful.Resource):
     # to always provide limit and offset (config)
     # and implement abort when both not provided,
     # as well as if the scope is too large.
+    @limiter.limit(config.LIMITS_MESSAGES_GET)
     def get(self):
         """Get a range of messages using a "limit"
         and an "offset."
@@ -148,7 +158,7 @@ class Messages(flask_restful.Resource):
 
         if 'limit' in json_data:
             limit = int(json_data['limit'])
-            assert limit <= config.POSTS_GET_LIMIT_MAX
+            assert limit <= config.LIMITS_MESSAGES_GET_LIMIT
             query = query.limit(limit)
 
         if 'offset' in json_data:
@@ -170,6 +180,7 @@ class Message(flask_restful.Resource):
     """
 
     @auth.login_required
+    @limiter.limit(config.LIMITS_MESSAGE_PUT)
     def put(self, message_id):
         """Edit an existing message.
 
@@ -192,6 +203,7 @@ class Message(flask_restful.Resource):
             flask_restful.abort(400, message=message)
 
     @auth.login_required
+    @limiter.limit(config.LIMITS_MESSAGE_POST)
     def post(self):
         """Create a new message.
 
@@ -210,9 +222,12 @@ class Message(flask_restful.Resource):
         new_message = models.Message(user_id, text)
         db.session.add(new_message)
         db.session.commit()
-        return self.get(new_message.id)
+        new_message_from_db = self.get(new_message.id)
+        sse.publish(new_message_from_db, type='message')
+        return new_message_from_db
 
     @auth.login_required
+    @limiter.limit(config.LIMITS_MESSAGE_DELETE)
     def delete(self, message_id):
         """Delete a specific message.
 
@@ -234,6 +249,7 @@ class Message(flask_restful.Resource):
             message = "You're not the author of message %d" % message_id
             flask_restful.abort(401, message=message)
 
+    @limiter.limit(config.LIMITS_MESSAGE_GET)
     def get(self, message_id):
         """Get a specific post.
 
@@ -246,52 +262,6 @@ class Message(flask_restful.Resource):
         else:
             message = "Cannot find message by id: %s" % message_id
             flask_restful.abort(404, message=message)
-
-
-class Stream(flask_restful.Resource):
-    """A live event stream (especiall for JavaScript
-    EventSource) for new messages.
-
-    """
-
-    def get(self):
-        """Get events from the stream.
-
-        """
-
-        return flask.Response(self.event(), mimetype="text/event-stream")
-
-    def event(self):
-        """The actual event magic.
-
-        """
-
-        with app.app_context():
-
-            try:
-                result = (db.session.query(models.Message).limit(1)
-                          .order_by(flask_sqlalchemy
-                                    .desc(models.Message.created)))
-                latest_message_id = result.id
-            except AttributeError:
-                # .id will raise AttributeError if
-                # the query doesn't match anything
-                latest_message_id = 0
-
-        while True:
-
-            with app.app_context():
-                messages = (db.session.query(models.Message)
-                            .filter(models.Message.id > latest_message_id)
-                            .order_by(models.Message.id.asc()).all())
-
-            if messages:
-                latest_message_id = messages[-1].id
-                newer_messages = [message.to_dict() for message in messages]
-                yield "data: " + json.dumps(newer_messages) + "\n\n"
-
-            with app.app_context():
-                gevent.sleep(app.config['SLEEP_RATE'])
 
 
 @auth.error_handler
@@ -328,11 +298,6 @@ def get_password(username, password):
 
 
 def init_db():
-    """For use on command line for setting up
-    the database.
-
-    """
-
     models.Base.metadata.drop_all(bind=db.engine)
     models.Base.metadata.create_all(bind=db.engine)
     db.session.commit()
@@ -340,14 +305,14 @@ def init_db():
 
 api.add_resource(Message, '/message', '/message/<int:message_id>')
 api.add_resource(Messages, '/messages', '/messages/<int:page>')
-api.add_resource(Stream, '/stream')
 api.add_resource(User, '/user', '/user/<int:user_id>', '/user/<username>')
 
+
+if config.SQLALCHEMY_DATABASE_URI == "sqlite:///:memory:":
+    init_db()
 
 if __name__ == '__main__':
     arguments = docopt.docopt(__doc__)
 
-    if arguments['init_db']:
+    if arguments['--init_db']:
         init_db()
-
-    WSGIServer(('', 5000), app).serve_forever()

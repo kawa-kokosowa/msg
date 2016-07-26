@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Message Stream (SSE)</title>
+</head>
+<body>
+  <h1>Message Stream (SSE)</h1>
+  <script>
+    var source = new EventSource("http://localhost:5000/stream");
+    source.addEventListener('message', function(event) {
+        var data = JSON.parse(event.data);
+        console.log(data);
+    }, false);
+    source.addEventListener('error', function(event) {
+        console.log("connection failure");
+    }, false);
+  </script>
+</body>
+</html>

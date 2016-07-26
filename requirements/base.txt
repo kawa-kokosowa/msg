@@ -5,5 +5,6 @@ flask-httpauth
 flask_sqlalchemy  # I believe this installs sqlalchemy too
 flask_limiter
 requests
-gevent
 pytest
+flask_sse
+gunicorn

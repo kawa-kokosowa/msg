@@ -7,12 +7,14 @@ import flask
 import requests
 import json
 
-from flask_limiter import Limiter
-
 
 app = flask.Flask(__name__)
 app.config.from_object("config")
-limiter = Limiter(app)
+
+
+@app.route('/stream')
+def stream():
+    return flask.render_template('stream.html')
 
 
 @app.route('/<int:page>')
@@ -26,7 +28,7 @@ def posts(page=1):
     request = requests.get("http://localhost:5000/messages",
                            data=json_payload)
     posts = request.json()
-    return flask.render_template('get_view.html',
+    return flask.render_template('pages.html',
                                  posts=posts)
 
 
