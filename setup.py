@@ -7,8 +7,9 @@ import sys
 from setuptools import setup
 from distutils.version import StrictVersion
 
+from msgboard import __version__
 
-exec(open('msgboard/__init__.py').read())
+
 setup(name='msgboard',
       packages=['msgboard'],
       version=__version__,
