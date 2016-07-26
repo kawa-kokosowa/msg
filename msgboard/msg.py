@@ -11,8 +11,6 @@ Options:
 
 from flask_httpauth import HTTPBasicAuth
 
-#import models
-#import config
 from . import models
 from . import config
 
