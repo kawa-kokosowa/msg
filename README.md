@@ -16,16 +16,14 @@ any database supported by SQLAlchemy.
 The beauty in this project is that its focus/scope is tiny, the barebones
 of any messaging system, which we perfect for you.
 
-Be sure to look at our [`REST_API.md`](./REST_API.md)!
+For the REST API, setup instructions, deployment instructions, and more,
+please read [The Official msgboard Wiki](https://github.com/lily-seabreeze/msgboard/wiki)!
 
-## Setup in Ubuntu
+## Generic setup
 
-  1. `sudo apt install redis-server`
-  2. `sudo service redis-server start`
-
-Launching the service:
-
-`gunicorn msgboard.msg:app --worker-class gevent --bind localhost:5000`
+  1. install and launch redis server
+  2. `pip install -r requirements/base.txt`
+  2. `gunicorn msgboard.msg:app --worker-class gevent --bind localhost:5000`
 
 ## Test it out
 
