@@ -1,6 +1,6 @@
 # msgboard
 
-[![Travis CI Status](https://travis-ci.org/lillian-gardenia-seabreeze/msgboard.svg)](https://travis-ci.org/lillian-gardenia-seabreeze/msgboard)
+[![Travis CI Status](https://travis-ci.org/lily-seabreeze/msgboard.svg)](https://travis-ci.org/lily-seabreeze/msgboard)
 [![Coveralls Code Coverage](https://img.shields.io/coveralls/lillian-gardenia-seabreeze/msgboard.svg)](https://coveralls.io/github/lillian-gardenia-seabreeze/msgboard)
 
 msgboard is a simple, but powerful RESTful [service-oriented architecture (SOA)](https://en.wikipedia.org/wiki/Service-oriented_architecture)
