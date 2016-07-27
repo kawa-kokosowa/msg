@@ -38,8 +38,13 @@ class TestEverything(unittest.TestCase):
 
         message_range = {"offset": 0, "limit": 10}
         status, response = self.get('/messages', data=message_range)
-        assert status == 200
-        assert [] == response
+        assert status == 404
+
+        response_fixture = {
+                            "message": 'No messages found at offset 0 limit 10'
+                           }
+
+        assert response_fixture == response
 
     def __getattr__(self, attribute_name):
         """This is so you can call self.post, self.get, self.put,
@@ -279,6 +284,16 @@ class TestEverything(unittest.TestCase):
                                 }
                        }
         assert post_fixture == response
+
+    def test_get_wrong_post(self):
+        self.test_post()
+        status, response = self.get('/message/2')
+        assert status == 404
+
+        response_fixture = {
+                            "message": 'Cannot find message by id: 2'
+                           }
+        assert response_fixture == response
 
     def test_edit_message(self):
         """Test that a user can edit their own message
