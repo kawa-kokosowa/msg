@@ -7,20 +7,6 @@ import sys
 from setuptools import setup
 from distutils.version import StrictVersion
 
-from pip.req import parse_requirements
-
-
-# Here I am lazy; I really didn't want to maintain the depends
-# in both requirements files AND in this setup, thus we are
-# going to read them all into a list.
-#
-# CREDIT: http://stackoverflow.com/questions/14399534/how-can-i-reference-requirements-txt-for-the-install-requires-kwarg-in-setuptool
-#
-# parse_requirements() returns generator of pip.req.InstallRequirement objects
-install_reqs = parse_requirements('requirements/develop.txt', session=False)
-# reqs is a list of requiremens
-# e.g. ['django==1.5.1', 'mezzanine==1.4.6']
-reqs = [str(ir.req) for ir in install_reqs]
 
 # demon magic to get version without activating
 # imports
@@ -29,7 +15,10 @@ setup(name='msg',
       packages=['msg'],
       version=__version__,
       description='msg server backend',
-      setup_requires=['setuptools-markdown'],
+      setup_requires=['setuptools-markdown', 'flask', 'flask-restful',
+                      'flask-httpauth', 'flask_sqlalchemy', 'flask_limiter',
+                      'requests', 'flask_sse', 'gunicorn', 'jsonschema',
+                      'pytest', 'pytest-cov', 'pytest-pep8',],
       long_description_markdown_filename='README.md',
       author='Lily Seabreeze',
       author_email='lillian.gardenia.seabreeze@gmail.com',
