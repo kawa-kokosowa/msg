@@ -4,8 +4,7 @@
 [![Coveralls Code Coverage](https://img.shields.io/coveralls/lily-seabreeze/msg.svg)](https://coveralls.io/github/lily-seabreeze/msg)
 [![PyPi](https://img.shields.io/pypi/v/msg.svg)](https://pypi.python.org/pypi/msg)
 
-msg is a simple, but powerful RESTful [service-oriented architecture (SOA)](https://en.wikipedia.org/wiki/Service-oriented_architecture)
-messaging library.
+msg is a simple, but powerful RESTful messaging library.
 
 msg focuses on the overlapping core features of any messaging system,
 so you can skip to implementing the cool parts. You can use msg to
@@ -20,19 +19,24 @@ of any messaging system, which we perfect for you.
 For the REST API, setup instructions, deployment instructions, and more,
 please read [The Official msg Wiki](https://github.com/lily-seabreeze/msg/wiki)!
 
-## Generic setup
+## Quick Start
+
+  1. install and launch redis server
+  2. `pip install msg`
+  3. `gunicorn msg.msg:app --worker-class gevent --bind localhost:5000`
+
+## Develop
 
   1. install and launch redis server
   2. Edit `msg/config.py` or override
-  3. `pip install -r requirements/base.txt`
-  4. `gunicorn msg.msg:app --worker-class gevent --bind localhost:5000`
+  3. `pip install -r requirements/develop.txt`
 
 If you're using a non-default database:
 
 `python -c "import msg.msg; msg.msg.init_db()"`
 
 
-## Test it out
+## Example
 
 For the demo to work you need to install the
 `Allow-Control-Allow-Origin: *` plugin for Firefox,
