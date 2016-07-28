@@ -47,7 +47,11 @@ class TestEverything(unittest.TestCase):
         assert response_fixture == response
 
     def test_get_too_many_messages(self):
-        message_range = {"offset": 0, "limit": msg.app.config['LIMITS_MESSAGES_GET_LIMIT'] + 1}
+        too_many = msg.app.config['LIMITS_MESSAGES_GET_LIMIT'] + 1
+        message_range = {
+                         "offset": 0,
+                         "limit": too_many,
+                        }
         status, response = self.get('/messages', data=message_range)
         assert status == 400
 
