@@ -27,6 +27,13 @@ Limit the rate which an IP may request
 user information.
 """
 
+LIMITS_USER_POST = "2 per minute"
+"""str: flask_limiter limit.
+
+Limit the number of users an IP
+may create per second.
+"""
+
 LIMITS_MESSAGES_GET = "10 per minute"
 """str: flask_limiter limit.
 

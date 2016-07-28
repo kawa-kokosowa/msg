@@ -8,3 +8,4 @@ requests
 pytest
 flask_sse
 gunicorn
+jsonschema

@@ -16,6 +16,7 @@ from . import config
 
 import flask_limiter
 from flask_sse import sse
+import jsonschema
 
 import os
 import json
@@ -26,6 +27,7 @@ import requests
 import sqlalchemy
 import flask_sqlalchemy
 
+# Flask setup
 app = flask.Flask(__name__)
 
 config_path = os.path.dirname(os.path.abspath(__file__))
@@ -48,6 +50,16 @@ class User(flask_restful.Resource):
 
     """
 
+    SCHEMA_POST = {
+                   "type": "object",
+                   "properties": {
+                                  "bio": {"type": "string"},
+                                  "username": {"type": "string"},
+                                  "password": {"type": "string"},
+                                 },
+                   "required": ["username", "password"],
+                  }
+
     @limiter.limit(config.LIMITS_USER_GET)
     def get(self, user_id=None, username=None):
         """Get a specific user's info by user ID
@@ -61,6 +73,10 @@ class User(flask_restful.Resource):
         Arguments:
             user_id (int|None): --
             username (str|None): --
+
+        Warning:
+            If both `user_id` and `username` are specified,
+            user_id will be used.
 
         Returns:
             None: If aborted.
@@ -90,7 +106,7 @@ class User(flask_restful.Resource):
 
         return user.to_dict()
 
-    @limiter.limit(config.LIMITS_USER_GET)
+    @limiter.limit(config.LIMITS_USER_POST)
     def post(self):
         """Create a new user.
 
@@ -105,16 +121,10 @@ class User(flask_restful.Resource):
 
         """
 
-        json_data = flask.request.get_json(force=True)
-
-        try:
-            username = json_data['username']
-            password = json_data['password']
-        except KeyError:
-            message = "Must specify username and password."
-            flask_restful.abort(400, message=message)
-
+        json_data = get_valid_json(self.SCHEMA_POST)
         bio = json_data.get('bio')
+        username = json_data['username']
+        password = json_data['password']
         new_user = models.User(username, password, bio=bio)
         db.session.add(new_user)
 
@@ -124,6 +134,8 @@ class User(flask_restful.Resource):
             message = "A user already exists with username: %s" % username
             flask_restful.abort(400, message=message)
         else:
+            # will happen only if successful/no
+            # error raised
             return new_user.to_dict()
 
 
@@ -132,10 +144,15 @@ class Messages(flask_restful.Resource):
 
     """
 
-    # TODO: Make hard limits on this. Force people
-    # to always provide limit and offset (config)
-    # and implement abort when both not provided,
-    # as well as if the scope is too large.
+    SCHEMA_GET = {
+                  "type": "object",
+                  "properties": {
+                                 "offset": {"type": "string"},
+                                 "limit": {"type": "string"},
+                                },
+                  "required": ["offset", "limit"],
+                 }
+
     @limiter.limit(config.LIMITS_MESSAGES_GET)
     def get(self):
         """Get a range of messages using a "limit"
@@ -148,22 +165,21 @@ class Messages(flask_restful.Resource):
 
         """
 
-        json_data = flask.request.get_json(force=True)
-        # NOTE: the logic this implies is that if neither
-        # limit nor offset is specified, all messages will
-        # be returned (not the best behavior imo).
+        json_data = get_valid_json(self.SCHEMA_GET)
+        offset = int(json_data['offset'])
+        limit = int(json_data['limit'])
+
+        # Just make sure not requesting too many at once!
+        if limit > config.LIMITS_MESSAGES_GET_LIMIT:
+            message = ("You may only request %d messages at once."
+                       % config.LIMITS_MESSAGES_GET_LIMIT)
+            flask_restful.abort(400, message=message)
+
+        # Now we're sure we have the right data to
+        # make a query, actually do that query and
+        # return said data or 404 if nothing matches.
         query = db.session.query(models.Message)
-
-        if 'limit' in json_data:
-            limit = int(json_data['limit'])
-            assert limit <= config.LIMITS_MESSAGES_GET_LIMIT
-            query = query.limit(limit)
-
-        if 'offset' in json_data:
-            offset = int(json_data['offset'])
-            query = query.offset(offset)
-
-        results = query.all()
+        results = query.limit(limit).offset(offset).all()
 
         if results == []:
             message = ("No messages found at offset %d limit %d"
@@ -178,6 +194,14 @@ class Message(flask_restful.Resource):
 
     """
 
+    SCHEMA = {
+              "type": "object",
+              "properties": {
+                             "text": {"type": "string"},
+                            },
+              "required": ["text"],
+             }
+
     @auth.login_required
     @limiter.limit(config.LIMITS_MESSAGE_PUT)
     def put(self, message_id):
@@ -188,10 +212,11 @@ class Message(flask_restful.Resource):
 
         """
 
-        json_data = flask.request.get_json(force=True)
-        text = json_data['text']
+        text = get_valid_json(self.SCHEMA)['text']
         result = db.session.query(models.Message).get(message_id)
 
+        # we don't want people editing posts which don't
+        # belong to them...
         if result.user.username == auth.username():
             result.text = text
             db.session.commit()
@@ -208,13 +233,7 @@ class Message(flask_restful.Resource):
 
         """
 
-        json_data = flask.request.get_json(force=True)
-
-        try:
-            text = json_data['text']
-        except KeyError:
-            flask_restful.abort(400, message="You must specify text field.")
-
+        text = get_valid_json(self.SCHEMA)['text']
         user_id = (db.session.query(models.User)
                    .filter(models.User.username == auth.username())
                    .first().id)
@@ -294,6 +313,17 @@ def get_password(username, password):
         return False
     else:
         return result.check_password(password)
+
+
+def get_valid_json(schema):
+    json_data = flask.request.get_json(force=True)
+
+    try:
+        jsonschema.validate(json_data, schema)
+    except jsonschema.ValidationError as e:
+        flask_restful.abort(400, message=e.message)
+    else:
+        return json_data
 
 
 def init_db():
