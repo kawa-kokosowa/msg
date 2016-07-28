@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-"""msgboard package installer.
+"""msg package installer.
 
 """
 
@@ -7,7 +7,7 @@ import sys
 from setuptools import setup
 from distutils.version import StrictVersion
 
-from msgboard import __version__
+from msg import __version__
 
 
 setup(name='msg',
