@@ -9,6 +9,6 @@ before_install:
     - "sudo service redis-server start"
     - "pip install -r requirements/travis.txt"
 script:
-    - py.test tests --doctest-modules --pep8 msgboard/msg.py -v --cov-report term-missing --cov=msgboard/msg.py
+    - py.test tests --doctest-modules --pep8 msg/msg.py -v --cov-report term-missing --cov=msg/msg.py
 after_success:
     - coveralls
