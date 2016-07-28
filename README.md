@@ -22,8 +22,14 @@ please read [The Official msgboard Wiki](https://github.com/lily-seabreeze/msgbo
 ## Generic setup
 
   1. install and launch redis server
-  2. `pip install -r requirements/base.txt`
-  2. `gunicorn msgboard.msg:app --worker-class gevent --bind localhost:5000`
+  2. Edit `msgboard/config.py` or override
+  3. `pip install -r requirements/base.txt`
+  4. `gunicorn msgboard.msg:app --worker-class gevent --bind localhost:5000`
+
+If you're using a non-default database:
+
+`python -c "import msgboard.msg; msgboard.msg.init_db()"`
+
 
 ## Test it out
 

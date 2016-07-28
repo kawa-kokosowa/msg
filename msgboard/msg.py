@@ -339,9 +339,3 @@ api.add_resource(User, '/user', '/user/<int:user_id>', '/user/<username>')
 
 if config.SQLALCHEMY_DATABASE_URI == "sqlite:///:memory:":
     init_db()
-
-if __name__ == '__main__':
-    arguments = docopt.docopt(__doc__)
-
-    if arguments['--init_db']:
-        init_db()
