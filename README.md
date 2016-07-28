@@ -2,6 +2,7 @@
 
 [![Travis CI Status](https://travis-ci.org/lily-seabreeze/msg.svg)](https://travis-ci.org/lily-seabreeze/msg)
 [![Coveralls Code Coverage](https://img.shields.io/coveralls/lily-seabreeze/msg.svg)](https://coveralls.io/github/lily-seabreeze/msg)
+[![PyPi](https://img.shields.io/pypi/v/msg.svg)](https://pypi.python.org/pypi/msg)
 
 msg is a simple, but powerful RESTful [service-oriented architecture (SOA)](https://en.wikipedia.org/wiki/Service-oriented_architecture)
 messaging library.
