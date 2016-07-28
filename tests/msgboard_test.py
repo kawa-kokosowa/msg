@@ -9,7 +9,7 @@ import unittest
 import tempfile
 import functools
 
-from ..msgboard import msg
+from ..msg import msg
 
 
 class TestEverything(unittest.TestCase):

@@ -1,4 +1,4 @@
-"""msgboard: simple REST msg library.
+"""msg: simple REST msg library.
 
 """
 
