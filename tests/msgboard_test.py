@@ -58,7 +58,6 @@ class TestEverything(unittest.TestCase):
         fixture = {'message': 'You may only request 20 messages at once.'}
         assert fixture == response
 
-       
     def __getattr__(self, attribute_name):
         """This is so you can call self.post, self.get, self.put,
         self.post, etc. This only happens when there is no such
