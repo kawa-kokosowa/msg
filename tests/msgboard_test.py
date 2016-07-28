@@ -150,7 +150,7 @@ class TestEverything(unittest.TestCase):
         # specifying username or password
         status, response = self.post('/user', data={'lol': 'lol'})
         assert status == 400
-        assert response == {'message': 'Must specify username and password.'}
+        assert response == {'message': "'username' is a required property"}
 
     def test_create_existing_user(self):
         """Attempt to created a user that is already
@@ -265,7 +265,7 @@ class TestEverything(unittest.TestCase):
         status, response = self.post('/message', headers=headers,
                                      data={'textg': 'whoops'})
         assert status == 400
-        assert response == {'message': 'You must specify text field.'}
+        assert response == {'message': "'text' is a required property"}
 
     def test_get_post(self):
         self.test_post()

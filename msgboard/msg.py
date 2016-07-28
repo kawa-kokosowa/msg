@@ -147,8 +147,8 @@ class Messages(flask_restful.Resource):
     SCHEMA_GET = {
                   "type": "object",
                   "properties": {
-                                 "offset": {"type": "string"},
-                                 "limit": {"type": "string"},
+                                 "offset": {"type": "integer"},
+                                 "limit": {"type": "integer"},
                                 },
                   "required": ["offset", "limit"],
                  }
