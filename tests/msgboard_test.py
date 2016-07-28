@@ -239,12 +239,14 @@ class TestEverything(unittest.TestCase):
         assert status == 404
         assert name_response == no_name_fixture
 
-    def test_post(self):
+    def test_post(self, create_user=True):
         """Test creating a message.
 
         """
 
-        self.test_create_user()
+        if create_user:
+            self.test_create_user()
+
         message_content = {"text": 'I am a message.'}
         headers = self.make_base64_header("testuser", "testpass")
         status, response = self.post('/message', headers=headers,
@@ -252,10 +254,10 @@ class TestEverything(unittest.TestCase):
         assert status == 200
 
         del response["created"]
+        del response["id"]
         del response["user"]["created"]
 
         post_fixture = {
-                        "id": 1,
                         "text": 'I am a message.',
                         "user": {
                                  "bio": None,
@@ -264,8 +266,36 @@ class TestEverything(unittest.TestCase):
                                 }
                        }
 
-        # you're getting NONE here because the user isn't created
         assert post_fixture == response
+
+    # TODO: this test is lame and will only fetch one
+    # message through messages.
+    def test_get_messages(self):
+        self.test_post()
+        self.test_post(create_user=False)
+        self.test_post(create_user=False)
+        limit = msg.app.config['LIMITS_MESSAGES_GET_LIMIT']
+        message_range = {
+                         "offset": 0,
+                         "limit": limit,
+                        }
+        status, response = self.get('/messages', data=message_range)
+        assert status == 200
+
+        post_fixture = {
+                        "text": 'I am a message.',
+                        "user": {
+                                 "bio": None,
+                                 "id": 1,
+                                 "username": 'testuser'
+                                }
+                       }
+
+        for message in response:
+            del message["created"]
+            del message["id"]
+            del message["user"]["created"]
+            assert post_fixture == message
 
     def test_create_message_without_text(self):
         """Try to create a message without text.
