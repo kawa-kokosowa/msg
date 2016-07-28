@@ -9,8 +9,6 @@ from distutils.version import StrictVersion
 
 from pip.req import parse_requirements
 
-from msg import __version__
-
 
 # Here I am lazy; I really didn't want to maintain the depends
 # in both requirements files AND in this setup, thus we are
@@ -24,6 +22,9 @@ install_reqs = parse_requirements('requirements/develop.txt', session=False)
 # e.g. ['django==1.5.1', 'mezzanine==1.4.6']
 reqs = [str(ir.req) for ir in install_reqs]
 
+# demon magic to get version without activating
+# imports
+exec(open('sappho/__init__.py').read())
 setup(name='msg',
       packages=['msg'],
       version=__version__,
