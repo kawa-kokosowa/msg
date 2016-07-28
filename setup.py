@@ -24,7 +24,7 @@ reqs = [str(ir.req) for ir in install_reqs]
 
 # demon magic to get version without activating
 # imports
-exec(open('sappho/__init__.py').read())
+exec(open('msg/__init__.py').read())
 setup(name='msg',
       packages=['msg'],
       version=__version__,
