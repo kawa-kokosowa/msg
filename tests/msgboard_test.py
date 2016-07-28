@@ -46,6 +46,15 @@ class TestEverything(unittest.TestCase):
 
         assert response_fixture == response
 
+    def test_get_too_many_messages(self):
+        message_range = {"offset": 0, "limit": msg.app.config['LIMITS_MESSAGES_GET_LIMIT'] + 1}
+        status, response = self.get('/messages', data=message_range)
+        assert status == 400
+
+        fixture = {'message': 'You may only request 20 messages at once.'}
+        assert fixture == response
+
+       
     def __getattr__(self, attribute_name):
         """This is so you can call self.post, self.get, self.put,
         self.post, etc. This only happens when there is no such
