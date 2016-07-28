@@ -10,13 +10,13 @@ from distutils.version import StrictVersion
 from msgboard import __version__
 
 
-setup(name='msgboard',
-      packages=['msgboard'],
+setup(name='msg',
+      packages=['msg'],
       version=__version__,
-      description='msgboard server backend',
+      description='msg server backend',
       setup_requires=['setuptools-markdown'],
       long_description_markdown_filename='README.md',
-      author='Lillian Seabreeze',
+      author='Lily Seabreeze',
       author_email='lillian.gardenia.seabreeze@gmail.com',
       license='MIT',
       classifiers=['Development Status :: 3 - Alpha',

@@ -1,35 +1,30 @@
 """msgboard: simple REST msg library.
 
-Usage:
-    msgboard.py init_db
-    msgboard.py -h | --help
-
-Options:
-    -h --help    Show this screen.
-
 """
 
-from flask_httpauth import HTTPBasicAuth
+# First builtins
+import os
+import json
 
+# 3rd party
+from flask_httpauth import HTTPBasicAuth
+from flask_sse import sse
+
+import flask
+import flask_limiter
+import flask_restful
+import flask_sqlalchemy
+import sqlalchemy
+import jsonschema
+import requests
+
+# Local
 from . import models
 from . import config
 
-import flask_limiter
-from flask_sse import sse
-import jsonschema
-
-import os
-import json
-import docopt
-import flask_restful
-import flask
-import requests
-import sqlalchemy
-import flask_sqlalchemy
 
 # Flask setup
 app = flask.Flask(__name__)
-
 config_path = os.path.dirname(os.path.abspath(__file__))
 app.config.from_pyfile(os.path.join(config_path, "config.py"))
 app.register_blueprint(sse, url_prefix='/stream')
@@ -327,6 +322,12 @@ def get_valid_json(schema):
 
 
 def init_db():
+    """Erase the tables (if exist) and create them anew.
+
+    Prepares the database for msgboard to operate.
+
+    """
+
     models.Base.metadata.drop_all(bind=db.engine)
     models.Base.metadata.create_all(bind=db.engine)
     db.session.commit()
