@@ -5,7 +5,6 @@
 
 import sys
 from setuptools import setup
-from distutils.version import StrictVersion
 
 
 # demon magic to get version without activating
@@ -16,10 +15,10 @@ setup(name='msg',
       version=__version__,
       description='msg server backend',
       setup_requires=['setuptools-markdown',],
-      install_requires=['flask', 'flask-restful', 'flask-httpauth',
-                        'flask_sqlalchemy', 'flask_limiter',
-                        'requests', 'flask_sse', 'gunicorn', 'jsonschema',
-                        'pytest', 'pytest-cov', 'pytest-pep8',],
+      install_requires=['flask', 'flask_sqlalchemy',
+                        'flask_sqlalchemy', 'flask_limiter', 'flask-restful',
+                        'flask-httpauth', 'requests', 'flask_sse',
+                        'gunicorn', 'jsonschema'],
       long_description_markdown_filename='README.md',
       author='Lily Seabreeze',
       author_email='lillian.gardenia.seabreeze@gmail.com',
@@ -28,6 +27,6 @@ setup(name='msg',
                    'Intended Audience :: Developers',
                    'Natural Language :: English',
                    'Programming Language :: Python :: 2.7',
-                   'Programming Language :: Python :: 3.4',
+                   'Programming Language :: Python :: 3.5',
                   ],
     )
