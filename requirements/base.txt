@@ -7,3 +7,4 @@ requests
 flask_sse
 gunicorn
 jsonschema
+gevent
