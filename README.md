@@ -4,7 +4,7 @@
 [![Coveralls Code Coverage](https://img.shields.io/coveralls/lily-seabreeze/msg.svg)](https://coveralls.io/github/lily-seabreeze/msg)
 [![PyPi](https://img.shields.io/pypi/v/msg.svg)](https://pypi.python.org/pypi/msg)
 
-msg is a simple, but powerful RESTful messaging library.
+msg is a simple, but powerful service-oriented RESTful messaging library.
 
 msg focuses on the overlapping core features of any messaging system,
 so you can skip to implementing the cool parts. You can use msg to
