@@ -48,12 +48,15 @@ class Message(Base):
 
     """
 
-    __tablename__ = 'posts'
+    __tablename__ = 'messages'
     id = sqlalchemy.Column(sqlalchemy.Integer, primary_key=True)
     user_id = sqlalchemy.Column(sqlalchemy.Integer,
                                 sqlalchemy.ForeignKey(User.id))
     created = sqlalchemy.Column(sqlalchemy.DateTime,
                                 default=datetime.datetime.utcnow)
+    modified = sqlalchemy.Column(sqlalchemy.DateTime,
+                                 default=datetime.datetime.utcnow,
+                                 onupdate=datetime.datetime.utcnow)
     text = sqlalchemy.Column(sqlalchemy.String())
 
     user = sqlalchemy.orm.relationship('User', foreign_keys='Message.user_id',
@@ -66,6 +69,10 @@ class Message(Base):
     def __repr__(self):
         return '<Message #%s>' % self.id
 
+    @staticmethod
+    def timedate_format(datetime_object):
+        return datetime_object.isoformat('T') + 'Z'
+
     def to_dict(self):
         """Return a dictionary representation of this
         user, which keys are in jsonStyle.
@@ -75,4 +82,5 @@ class Message(Base):
         return {'id': self.id,
                 'text': self.text,
                 'user': self.user.to_dict(),
-                'created': self.created.isoformat("T") + 'Z'}
+                'created': self.timedate_format(self.created),
+                'modified': self.timedate_format(self.modified)}

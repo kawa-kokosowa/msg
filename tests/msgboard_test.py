@@ -254,6 +254,7 @@ class TestEverything(unittest.TestCase):
         assert status == 200
 
         del response["created"]
+        del response["modified"]
         del response["id"]
         del response["user"]["created"]
 
@@ -293,6 +294,7 @@ class TestEverything(unittest.TestCase):
 
         for message in response:
             del message["created"]
+            del message["modified"]
             del message["id"]
             del message["user"]["created"]
             assert post_fixture == message
@@ -314,6 +316,7 @@ class TestEverything(unittest.TestCase):
         status, response = self.get('/message/1')
         assert status == 200
         del response['created']
+        del response['modified']
         del response['user']['created']
 
         post_fixture = {
@@ -359,6 +362,7 @@ class TestEverything(unittest.TestCase):
         assert status == 200
 
         del response["created"]
+        del response["modified"]
         del response["user"]["created"]
 
         assert edited_post_fixture == response
