@@ -175,6 +175,7 @@ class Messages(flask_restful.Resource):
                   "properties": {
                                  "offset": {"type": "integer"},
                                  "limit": {"type": "integer"},
+                                 "filter_by_username": {"type": "string"},
                                  "use_ascending_order": {"type": "boolean"},
                                 },
                   "required": ["offset", "limit"],
@@ -199,6 +200,7 @@ class Messages(flask_restful.Resource):
         offset = int(json_data['offset'])
         limit = int(json_data['limit'])
         use_ascending_order = json_data.get('use_ascending_order')
+        filter_by_username = json_data.get('filter_by_username')
 
         # Just make sure not requesting too many at once!
         if limit > config.LIMITS_MESSAGES_GET_LIMIT:
@@ -211,12 +213,18 @@ class Messages(flask_restful.Resource):
         # return said data or 404 if nothing matches.
         query = db.session.query(models.Message)
 
+        # maybe we only want messages belonging to
+        # a certain user
+        if filter_by_username:
+            query = (query.join(models.User)
+                     .filter(models.User.username == filter_by_username))
+
         # ensure messages are delivered in a consistent
         # and predictable order.
         if use_ascending_order is not None:
-            query.order_by(models.Message.modified.asc())
+            query = query.order_by(models.Message.modified.asc())
         else:
-            query.order_by(models.Message.modified.desc())
+            query = query.order_by(models.Message.modified.desc())
 
         # actually get the results/do the query!
         results = query.limit(limit).offset(offset).all()
