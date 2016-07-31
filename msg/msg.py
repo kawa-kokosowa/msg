@@ -136,7 +136,7 @@ class User(flask_restful.Resource):
             return new_user.to_dict()
 
 
-class Authentication(flask_restful.Resource):
+class Token(flask_restful.Resource):
     """blah.
 
     """
@@ -183,7 +183,7 @@ class Authentication(flask_restful.Resource):
     @staticmethod
     @auth.verify_password
     def verify_password(username_or_token, password):
-        user = Authentication.verify_auth_token(username_or_token)
+        user = Token.verify_auth_token(username_or_token)
 
         if user is None:
             # try to authenticate with username/password
@@ -361,7 +361,7 @@ def init_db():
     db.session.commit()
 
 
-api.add_resource(Authentication, '/auth')
+api.add_resource(Token, '/token')
 api.add_resource(Message, '/message', '/message/<int:message_id>')
 api.add_resource(Messages, '/messages', '/messages/<int:page>')
 api.add_resource(User, '/user', '/user/<int:user_id>', '/user/<username>')
