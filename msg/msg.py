@@ -133,38 +133,6 @@ class User(flask_restful.Resource):
             return new_user.to_dict()
 
 
-class AuthValidator(flask_restful.Resource):
-    """A simple resource designed only to
-    return a True/False if post'd creds are
-    correct or not.
-
-    """
-
-    SCHEMA = {
-              "type": "object",
-              "properties": {
-                             "username": {"type": "string"},
-                             "password": {"type": "string"},
-                            },
-              "required": ["username", "password"],
-             }
-
-    # FIXME: add limiter
-    def post(self):
-        credentials = get_valid_json(self.SCHEMA)
-        username = credentials['username']
-        password = credentials['password']
-        result = (db.session.query(models.User)
-                  .filter(models.User.username == username).first())
-
-        if result is None:
-            flask_restful.abort(401, message="Invalid user.")
-        elif result.check_password(password):
-            return {"message": "success!"}
-        else:
-            flask_restful.abort(401, message="Invalid password!")
-
-
 class Messages(flask_restful.Resource):
     """Manage more than one message at a time!
 
@@ -389,7 +357,6 @@ def init_db():
 api.add_resource(Message, '/message', '/message/<int:message_id>')
 api.add_resource(Messages, '/messages', '/messages/<int:page>')
 api.add_resource(User, '/user', '/user/<int:user_id>', '/user/<username>')
-api.add_resource(AuthValidator, '/user/validate')
 
 
 if config.SQLALCHEMY_DATABASE_URI == "sqlite:///:memory:":
