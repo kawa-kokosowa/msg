@@ -29,14 +29,13 @@ config_path = os.path.dirname(os.path.abspath(__file__))
 app.config.from_pyfile(os.path.join(config_path, "config.py"))
 app.register_blueprint(sse, url_prefix='/stream')
 api = flask_restful.Api(app, catch_all_404s=True)
+auth = HTTPBasicAuth()
 limiter = flask_limiter.Limiter(
                                 app,
-                                key_func=(flask_limiter.util.
-                                          get_remote_address),
+                                key_func=auth.username,
                                 global_limits=config.LIMITS_GLOBAL
                                )
 db = flask_sqlalchemy.SQLAlchemy(app)
-auth = HTTPBasicAuth()
 
 
 class User(flask_restful.Resource):
@@ -144,14 +143,19 @@ class Messages(flask_restful.Resource):
                   "properties": {
                                  "offset": {"type": "integer"},
                                  "limit": {"type": "integer"},
+                                 "filter_by_username": {"type": "string"},
+                                 "use_ascending_order": {"type": "boolean"},
                                 },
                   "required": ["offset", "limit"],
                  }
 
+    # FIXME, TODO
     @limiter.limit(config.LIMITS_MESSAGES_GET)
     def get(self):
         """Get a range of messages using a "limit"
-        and an "offset."
+        and an "offset." Ordered by modified date,
+        descending by default (use "use_ascending_order"
+        bool to reverse this behavior).
 
         Returns:
             list: list of dictionaries describing
@@ -163,6 +167,8 @@ class Messages(flask_restful.Resource):
         json_data = get_valid_json(self.SCHEMA_GET)
         offset = int(json_data['offset'])
         limit = int(json_data['limit'])
+        use_ascending_order = json_data.get('use_ascending_order')
+        filter_by_username = json_data.get('filter_by_username')
 
         # Just make sure not requesting too many at once!
         if limit > config.LIMITS_MESSAGES_GET_LIMIT:
@@ -174,6 +180,21 @@ class Messages(flask_restful.Resource):
         # make a query, actually do that query and
         # return said data or 404 if nothing matches.
         query = db.session.query(models.Message)
+
+        # maybe we only want messages belonging to
+        # a certain user
+        if filter_by_username:
+            query = (query.join(models.User)
+                     .filter(models.User.username == filter_by_username))
+
+        # ensure messages are delivered in a consistent
+        # and predictable order.
+        if use_ascending_order is not None:
+            query = query.order_by(models.Message.modified.asc())
+        else:
+            query = query.order_by(models.Message.modified.desc())
+
+        # actually get the results/do the query!
         results = query.limit(limit).offset(offset).all()
 
         if results == []:
