@@ -1,3 +1,4 @@
+SECRET_KEY = "honk honk honk honk"
 REDIS_URL = "redis://localhost"
 SQLALCHEMY_DATABASE_URI = "sqlite:///:memory:"
 SLEEP_RATE = 0.2
