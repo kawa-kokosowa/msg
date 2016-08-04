@@ -268,6 +268,44 @@ class TestEverything(unittest.TestCase):
 
         assert post_fixture == response
 
+    def test_post_with_token(self, create_user=True):
+        """Test creating a message using token
+        authorization.
+
+        """
+
+        if create_user:
+            self.test_create_user()
+
+        # Generate token, should be it's own function maybe?
+        headers = self.make_base64_header("testuser", "testpass")
+        status, response = self.get('/token', headers=headers)
+
+        assert status == 200
+
+        message_content = {"text": 'I am a message.'}
+        token = response["token"]
+        token_headers = self.make_base64_header(token, "unused")
+        status, response = self.post('/message', headers=token_headers,
+                                     data=message_content)
+
+        assert status == 200
+
+        del response["created"]
+        del response["id"]
+        del response["user"]["created"]
+
+        post_fixture = {
+                        "text": 'I am a message.',
+                        "user": {
+                                 "bio": None,
+                                 "id": 1,
+                                 "username": 'testuser'
+                                }
+                       }
+
+        assert post_fixture == response
+
     # TODO: this test is lame and will only fetch one
     # message through messages.
     def test_get_messages(self):
