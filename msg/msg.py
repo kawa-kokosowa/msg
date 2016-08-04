@@ -9,6 +9,8 @@ import json
 # 3rd party
 from flask_httpauth import HTTPBasicAuth
 from flask_sse import sse
+from itsdangerous import (TimedJSONWebSignatureSerializer
+                          as Serializer, BadSignature, SignatureExpired)
 
 import flask
 import flask_limiter
@@ -134,6 +136,67 @@ class User(flask_restful.Resource):
             return new_user.to_dict()
 
 
+class Token(flask_restful.Resource):
+    """blah.
+
+    """
+
+    # TODO: add limiter
+    @auth.login_required
+    def get(self):
+        token = self.generate_auth_token(flask.g.user.id)
+        return {'token': token.decode('ascii')}
+
+    @staticmethod
+    def generate_auth_token(id_, expiration=600):
+        s = Serializer(app.config['SECRET_KEY'],
+                       expires_in=expiration)
+        return s.dumps({'id': str(id_)})
+
+    @staticmethod
+    def verify_auth_token(token):
+        s = Serializer(app.config['SECRET_KEY'])
+
+        try:
+            data = s.loads(token)
+        except SignatureExpired:
+            return None  # valid token but expired
+        except BadSignature:
+            return None  # invalid token
+
+        user = db.session.query(models.User).get(data['id'])
+        return user
+
+    @staticmethod
+    @auth.login_required
+    def get_auth_token():
+        user_id = flask_login.current_user.id
+        token = Authenticate.generate_auth_token(user_id)
+        return {'token': token.decode('ascii')}
+
+    @staticmethod
+    @auth.error_handler
+    def auth_error():
+        flask_restful.abort(401, message="Unathorized")
+
+    # TODO: update docstring
+    @staticmethod
+    @auth.verify_password
+    def verify_password(username_or_token, password):
+        user = Token.verify_auth_token(username_or_token)
+
+        if user is None:
+            # try to authenticate with username/password
+            user = (db.session.query(models.User)
+                    .filter_by(username=username_or_token).first())
+
+            if user is None or (not user.check_password(password)):
+                return False
+
+        flask.g.user = user
+        return True
+
+
 class Messages(flask_restful.Resource):
     """Manage more than one message at a time!
 
@@ -229,9 +292,7 @@ class Message(flask_restful.Resource):
         """
 
         text = get_valid_json(self.SCHEMA)['text']
-        user_id = (db.session.query(models.User)
-                   .filter(models.User.username == auth.username())
-                   .first().id)
+        user_id = flask.g.user.id
         new_message = models.Message(user_id, text)
         db.session.add(new_message)
         db.session.commit()
@@ -277,39 +338,6 @@ class Message(flask_restful.Resource):
             flask_restful.abort(404, message=message)
 
 
-@auth.error_handler
-def auth_error():
-    flask_restful.abort(401, message="Unathorized")
-
-
-@auth.verify_password
-def get_password(username, password):
-    """For HTTPBasicAuth; this simply gets the
-    corresponding user, then return the result
-    of checking that password.
-
-    Arguments:
-        username (str):
-        password (str):
-
-    See Also:
-        flask_httpauth
-
-    Returns:
-        bool: True if the password is correct for the supplied
-            username, False otherwise.
-
-    """
-
-    result = (db.session.query(models.User)
-              .filter(models.User.username == username).first())
-
-    if result is None:
-        return False
-    else:
-        return result.check_password(password)
-
-
 def get_valid_json(schema):
     json_data = flask.request.get_json(force=True)
 
@@ -333,6 +361,7 @@ def init_db():
     db.session.commit()
 
 
+api.add_resource(Token, '/token')
 api.add_resource(Message, '/message', '/message/<int:message_id>')
 api.add_resource(Messages, '/messages', '/messages/<int:page>')
 api.add_resource(User, '/user', '/user/<int:user_id>', '/user/<username>')
